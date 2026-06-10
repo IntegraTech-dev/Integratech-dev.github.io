@@ -117,7 +117,7 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Modo de Acceso</label>
                                 <select id="modo" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-indigo-500">
-                                    <option value="General">General</option>
+                                    <option value="FullPass">FullPass</option>
                                     <option value="Promo">Promo</option>
                                     <option value="2x1">2x1</option>
                                     <option value="Preventa clases">Preventa c/ clases</option>
@@ -126,6 +126,8 @@
                                     <option value="Membresía nueva">Membresía nueva</option>
                                     <option value="Membresía renovación">Membresía renovación</option>
                                     <option value="Membresía canje">Membresía 50% canje</option>
+                                    <option value="1 clase">1 clase</option>
+                                    <option value="2 clases">2 clases</option>
                                 </select>
                             </div>
                             <div>
@@ -196,7 +198,7 @@
                     <div class="flex gap-2 w-full sm:w-auto">
                         <select id="filtroModo" class="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white">
                             <option value="TODOS">Todos los Accesos</option>
-                            <option value="General">General</option>
+                            <option value="FullPass">FullPass</option>
                             <option value="Promo">Promo</option>
                             <option value="2x1">2x1</option>
                             <option value="Preventa clases">Preventa c/ clases</option>
@@ -205,6 +207,8 @@
                             <option value="Membresía nueva">Membresía nueva</option>
                             <option value="Membresía renovación">Membresía renovación</option>
                             <option value="Membresía canje">Membresía 50% canje</option>
+                            <option value="1 clase">1 clase</option>
+                            <option value="2 clases">2 clases</option>
                             <option value="Devolución">Devoluciones</option>
                         </select>
                         <input type="text" id="buscador" placeholder="Buscar nombre..." class="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
@@ -330,7 +334,7 @@
 
         // 🎯 MATRIZ DE PRECIOS ACTUALIZADA CON TUS NUEVOS VALORES
         const PRECIOS_SOPORTE = { 
-            "General": 200, 
+            "FullPass": 200, 
             "Promo": 150, 
             "2x1": 200, 
             "Preventa clases": 100, 
@@ -338,13 +342,15 @@
             "Cortesía": 0,
             "Membresía nueva": 450,
             "Membresía renovación": 450,
-            "Membresía canje": 225
+            "Membresía canje": 225,
+            "1 clase": 100,
+            "2 clases": 150
         };
 
         document.getElementById('modo').addEventListener('change', (e) => {
             document.getElementById('precio').value = PRECIOS_SOPORTE[e.target.value] || 0;
         });
-        // General es la primera opción seleccionada por defecto
+        // FullPass es la primera opción seleccionada por defecto
         document.getElementById('precio').value = 200; 
 
         // --- SISTEMA DE AUTENTICACIÓN ---
@@ -521,7 +527,7 @@
                 
                 // Color dinámico según tipo de acceso
                 let colorClass = 'text-indigo-300 border-indigo-700';
-                if(r.modo === 'Promo' || r.modo.includes('Preventa')) {
+                if(r.modo === 'Promo' || r.modo.includes('Preventa') || r.modo.includes('clase')) {
                     colorClass = 'text-amber-400 border-amber-800';
                 } else if(r.modo.includes('Membresía')) {
                     colorClass = 'text-emerald-400 border-emerald-800';
@@ -728,12 +734,12 @@
                     <tr>
                         <td style="padding: 5px 15px; font-weight: bold;">(-) Devoluciones:</td>
                         <td style="padding: 5px 15px; text-align: right; color: #b91c1c;">$ ${devEfe.toFixed(2)}</td>
-                        <td style="padding: 5px 15px; text-align: right; color: #devTra.toFixed(2)}</td>
+                        <td style="padding: 5px 15px; text-align: right; color: #b91c1c;">$ ${devTra.toFixed(2)}</td>
                     </tr>
                     <tr>
                         <td style="padding: 5px 15px; font-weight: bold;">(-) Retiros Realizados:</td>
                         <td style="padding: 5px 15px; text-align: right; color: #b45309;">$ ${retEfe.toFixed(2)}</td>
-                        <td style="padding: 5px 15px; text-align: right; color: #retTra.toFixed(2)}</td>
+                        <td style="padding: 5px 15px; text-align: right; color: #b45309;">$ ${retTra.toFixed(2)}</td>
                     </tr>
                     <tr style="background-color: #e0e7ff; font-weight: bold;">
                         <td style="padding: 8px 15px; color: #1e3a8a;">(=) BALANCES NETOS:</td>
