@@ -314,12 +314,26 @@
         let registros = [];
         let retiros = [];
         
-        // 🔄 INTENTA RECUPERAR EL OPERADOR DEL NAVEGADOR PARA EVITAR LOGOUTS AL RECARGAR (F5)
-        let usuarioActivo = sessionStorage.getItem('zaicheck_user') || null;
+        // ⏱️ PARÁMETROS DE TIEMPO PARA LA SESIÓN (10 MINUTOS)
+        let usuarioActivo = null;
+        const SESION_DURACION = 10 * 60 * 1000; 
+
+        const sesionGuardada = localStorage.getItem('zaicheck_user');
+        const ultimaActividad = localStorage.getItem('zaicheck_timestamp');
+        const ahoraInit = Date.now();
+
+        // Validación inicial al cargar la página o presionar F5
+        if (sesionGuardada && ultimaActividad && (ahoraInit - ultimaActividad < SESION_DURACION)) {
+            usuarioActivo = sesionGuardada;
+            localStorage.setItem('zaicheck_timestamp', ahoraInit); 
+        } else {
+            localStorage.removeItem('zaicheck_user');
+            localStorage.removeItem('zaicheck_timestamp');
+        }
 
         const PIN_MAESTRO_SEGURIDAD = "2026"; 
 
-        // 🎯 MATRIZ DE PRECIOS ACTUALIZADA CON TUS NUEVOS VALORES
+        // 🎯 MATRIZ DE PRECIOS ACTUALIZADA
         const PRECIOS_SOPORTE = { 
             "FullPass": 200, 
             "Promo": 150, 
@@ -337,8 +351,9 @@
         document.getElementById('modo').addEventListener('change', (e) => {
             document.getElementById('precio').value = PRECIOS_SOPORTE[e.target.value] || 0;
         });
-        // FullPass es la primera opción seleccionada por defecto
-        document.getElementById('precio').value = 200; 
+        
+        // Carga dinámicamente el precio de la primera opción seleccionada por defecto
+        document.getElementById('precio').value = PRECIOS_SOPORTE[document.getElementById('modo').value] || 0; 
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         window.conmutarVistaRegistro = (mostrar) => {
@@ -397,8 +412,9 @@
         };
 
         function concederAccesoApp() {
-            // Guarda permanentemente al usuario en la sesión del navegador
-            sessionStorage.setItem('zaicheck_user', usuarioActivo);
+            // Guarda permanentemente al usuario y marca de tiempo en localStorage
+            localStorage.setItem('zaicheck_user', usuarioActivo);
+            localStorage.setItem('zaicheck_timestamp', Date.now());
 
             document.getElementById('displayUsuario').textContent = usuarioActivo;
             document.getElementById('pantallaLogin').classList.add('hidden');
@@ -418,12 +434,13 @@
 
         window.cerrarSesion = () => {
             usuarioActivo = null;
-            sessionStorage.removeItem('zaicheck_user'); // Borra la sesión al salir voluntariamente
+            localStorage.removeItem('zaicheck_user'); 
+            localStorage.removeItem('zaicheck_timestamp');
             document.getElementById('contenidoApp').classList.add('hidden');
             document.getElementById('pantallaLogin').classList.remove('hidden');
         };
 
-        // 🔄 INGRESO AUTOMÁTICO SI YA EXISTÍA UNA SESIÓN PREVIA ANTES DE ACTUALIZAR
+        // INGRESO AUTOMÁTICO SI EXISTE SESIÓN ACTIVA VALIDA
         if (usuarioActivo) {
             concederAccesoApp();
         }
@@ -449,7 +466,7 @@
             
             consultarComprobanteDirecto(id, nombre, modo, precio, tipoPago, ahora, usuarioActivo);
             e.target.reset();
-            document.getElementById('precio').value = 200;
+            document.getElementById('precio').value = PRECIOS_SOPORTE[document.getElementById('modo').value] || 0;
         });
 
         // REGISTROS RETIROS
@@ -640,7 +657,7 @@
         document.getElementById('buscador').addEventListener('input', renderAll);
         document.getElementById('filtroModo').addEventListener('change', renderAll);
 
-        // EXPORTAR EXCEL CON LOGICA DE MODOS EXTENDIDA
+        // EXPORTAR EXCEL
         window.exportarExcel = () => {
             if (registros.length === 0 && retiros.length === 0) return alert("No hay movimientos para exportar.");
             
@@ -758,6 +775,38 @@
         };
 
         window.limpiarRegistros = () => confirm("¿BORRAR TODO permanentemente?") && (remove(registrosRef), remove(retirosRef));
+
+        // ⏱️ CONTROLADORES DE TIEMPO Y DETECCIÓN DE INACTIVIDAD FLUIDA
+        function actualizarActividad() {
+            if (usuarioActivo) {
+                const tiempoUltimo = parseInt(localStorage.getItem('zaicheck_timestamp') || "0");
+                const ahora = Date.now();
+
+                // Validación reactiva ante clics
+                if (ahora - tiempoUltimo > SESION_DURACION) {
+                    alert("Tu sesión ha expirado por inactividad (10 minutos).");
+                    cerrarSesion();
+                } else {
+                    localStorage.setItem('zaicheck_timestamp', ahora);
+                }
+            }
+        }
+
+        // Detecta interacciones físicas en la ventana actual para refrescar el contador
+        window.addEventListener('click', actualizarActividad);
+        window.addEventListener('keypress', actualizarActividad);
+        window.addEventListener('scroll', actualizarActividad);
+
+        // Ciclo pasivo de validación en segundo plano (Revisa el estatus cada 15 segundos)
+        setInterval(() => {
+            if (usuarioActivo) {
+                const tiempoUltimo = parseInt(localStorage.getItem('zaicheck_timestamp') || "0");
+                if (Date.now() - tiempoUltimo > SESION_DURACION) {
+                    cerrarSesion();
+                    alert("Sesión cerrada automáticamente por inactividad.");
+                }
+            }
+        }, 15000);
     </script>
 </body>
 </html>
