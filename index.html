@@ -20,7 +20,6 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen font-sans relative">
 
-    <!-- 🔐 PANTALLA DE LOGGING Y REGISTRO DE USUARIOS -->
     <div id="pantallaLogin" class="fixed inset-0 bg-gray-950 flex items-center justify-center p-4 z-50">
         <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-2xl w-full max-w-sm">
             <div class="text-center mb-6">
@@ -28,7 +27,6 @@
                 <p class="text-gray-400 text-xs mt-1">Ingresa tus credenciales autorizadas</p>
             </div>
 
-            <!-- Formulario de Inicio de Sesión -->
             <form id="loginForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Usuario</label>
@@ -45,7 +43,6 @@
                 <button onclick="conmutarVistaRegistro(true)" class="text-xs text-indigo-400 hover:underline cursor-pointer">✨ Crear una nueva cuenta</button>
             </div>
 
-            <!-- Formulario oculto para Registro de nuevos usuarios -->
             <div id="seccionRegistro" class="hidden border-t border-gray-800 pt-4 space-y-4">
                 <p class="text-xs text-amber-400 font-bold uppercase tracking-wider text-center">Registrar Nuevo Operador</p>
                 <div>
@@ -69,7 +66,6 @@
     </div>
 
 
-    <!-- 💻 CONTENEDOR PRINCIPAL DE LA APLICACIÓN -->
     <div id="contenidoApp" class="container mx-auto p-4 max-w-6xl hidden">
         <header class="text-center my-6 flex flex-col sm:flex-row justify-between items-center bg-gray-800/40 p-4 rounded-xl border border-gray-800">
             <div class="text-left">
@@ -87,7 +83,6 @@
             </div>
         </header>
 
-        <!-- ACCIONES PRINCIPALES -->
         <div class="flex flex-wrap justify-end gap-3 mb-4">
             <button onclick="generarCorteCaja()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
                 🔒 Hacer Corte de Caja
@@ -102,9 +97,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            <!-- PANEL IZQUIERDO: REGISTROS Y SALIDAS -->
             <div class="space-y-6">
-                <!-- FORMULARIO ENTRADAS -->
                 <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700">
                     <h2 class="text-xl font-semibold mb-4 text-indigo-300 flex items-center gap-2">🎟️ Nuevo Registro</h2>
                     <form id="registroForm" class="space-y-4">
@@ -149,7 +142,6 @@
                     </form>
                 </div>
 
-                <!-- FORMULARIO RETIROS -->
                 <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-amber-900/30">
                     <h2 class="text-xl font-semibold mb-3 text-amber-400 flex items-center gap-2">💸 Retiro de Caja</h2>
                     <form id="retiroForm" class="space-y-3">
@@ -174,9 +166,7 @@
                 </div>
             </div>
 
-            <!-- PANEL DERECHO: TABLA Y DASHBOARD -->
             <div class="md:col-span-2 bg-gray-800 p-5 rounded-xl shadow-lg flex flex-col">
-                <!-- INDICADORES DINÁMICOS -->
                 <div class="grid grid-cols-3 gap-4 mb-6">
                     <div class="bg-indigo-950/40 border border-indigo-800/60 p-3 rounded-xl text-center">
                         <p class="text-[10px] text-indigo-300 uppercase font-semibold" id="labelDinero">Caja Filtrada</p>
@@ -192,7 +182,6 @@
                     </div>
                 </div>
 
-                <!-- BUSCADOR -->
                 <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
                     <h2 class="text-xl font-semibold text-indigo-300">Lista de Asistentes</h2>
                     <div class="flex gap-2 w-full sm:w-auto">
@@ -216,7 +205,6 @@
                 </div>
 
                 <div class="flex-grow">
-                    <!-- VISTA DESKTOP -->
                     <div class="hidden md:block overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -235,7 +223,6 @@
                             <tbody id="tablaRegistrosDesktop" class="divide-y divide-gray-700 text-sm"></tbody>
                         </table>
                     </div>
-                    <!-- VISTA MOBILE -->
                     <div id="listaRegistrosMobile" class="block md:hidden space-y-3"></div>
                     <div id="noData" class="text-center text-gray-500 py-8 hidden">Sin registros.</div>
                 </div>
@@ -243,7 +230,6 @@
         </div>
     </div>
 
-    <!-- MODAL TICKET ACCESO -->
     <div id="modalComprobante" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-sm w-full text-center flex flex-col" id="ticketImpresion">
             <div class="text-2xl font-black text-indigo-900 tracking-tight">BAILAMOS MEXICO</div>
@@ -271,7 +257,6 @@
         </div>
     </div>
 
-    <!-- 🔒 MODAL CORTE DE CAJA -->
     <div id="modalCorte" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-md w-full text-center flex flex-col" id="ticketCorte">
             <div class="text-2xl font-black text-gray-900 tracking-tight">CORTE DE CAJA</div>
@@ -328,7 +313,9 @@
 
         let registros = [];
         let retiros = [];
-        let usuarioActivo = null;
+        
+        // 🔄 INTENTA RECUPERAR EL OPERADOR DEL NAVEGADOR PARA EVITAR LOGOUTS AL RECARGAR (F5)
+        let usuarioActivo = sessionStorage.getItem('zaicheck_user') || null;
 
         const PIN_MAESTRO_SEGURIDAD = "2026"; 
 
@@ -410,6 +397,9 @@
         };
 
         function concederAccesoApp() {
+            // Guarda permanentemente al usuario en la sesión del navegador
+            sessionStorage.setItem('zaicheck_user', usuarioActivo);
+
             document.getElementById('displayUsuario').textContent = usuarioActivo;
             document.getElementById('pantallaLogin').classList.add('hidden');
             document.getElementById('contenidoApp').classList.remove('hidden');
@@ -428,9 +418,15 @@
 
         window.cerrarSesion = () => {
             usuarioActivo = null;
+            sessionStorage.removeItem('zaicheck_user'); // Borra la sesión al salir voluntariamente
             document.getElementById('contenidoApp').classList.add('hidden');
             document.getElementById('pantallaLogin').classList.remove('hidden');
         };
+
+        // 🔄 INGRESO AUTOMÁTICO SI YA EXISTÍA UNA SESIÓN PREVIA ANTES DE ACTUALIZAR
+        if (usuarioActivo) {
+            concederAccesoApp();
+        }
 
 
         // --- LOGICA DE REGISTROS CON FIRMA DE OPERADOR ---
