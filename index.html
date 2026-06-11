@@ -121,6 +121,7 @@
                                     <option value="Membresía canje">Membresía 50% canje</option>
                                     <option value="1 clase">1 clase</option>
                                     <option value="2 clases">2 clases</option>
+                                    <option value="Miembro activo">Miembro activo</option>
                                 </select>
                             </div>
                             <div>
@@ -128,6 +129,7 @@
                                 <select id="tipoPago" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                                     <option value="Efectivo">💵 Efectivo</option>
                                     <option value="Transferencia">📱 Transf.</option>
+                                    <option value="No aplica">➖ No aplica</option>
                                 </select>
                             </div>
                         </div>
@@ -198,6 +200,7 @@
                             <option value="Membresía canje">Membresía 50% canje</option>
                             <option value="1 clase">1 clase</option>
                             <option value="2 clases">2 clases</option>
+                                    <option value="Miembro activo">Miembro activo</option>
                             <option value="Devolución">Devoluciones</option>
                         </select>
                         <input type="text" id="buscador" placeholder="Buscar nombre..." class="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
@@ -345,7 +348,8 @@
             "Membresía renovación": 450,
             "Membresía canje": 225,
             "1 clase": 100,
-            "2 clases": 150
+            "2 clases": 150,
+            "Miembro activo": 0
         };
 
         document.getElementById('modo').addEventListener('change', (e) => {
@@ -542,7 +546,7 @@
                 let colorClass = 'text-indigo-300 border-indigo-700';
                 if(r.modo === 'Promo' || r.modo.includes('Preventa') || r.modo.includes('clase')) {
                     colorClass = 'text-amber-400 border-amber-800';
-                } else if(r.modo.includes('Membresía')) {
+                } else if(r.modo.includes('Membresía') || r.modo === 'Miembro activo') {
                     colorClass = 'text-emerald-400 border-emerald-800';
                 } else if(esDev) {
                     colorClass = 'text-red-400 border-red-900';
