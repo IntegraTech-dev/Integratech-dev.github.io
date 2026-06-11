@@ -6,14 +6,12 @@
     <title>BAILAMOS MEXICO ZAICHECK - PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        /* Estilos de impresión para tickets limpios */
         @media print {
             body * { visibility: hidden; }
             #ticketImpresion, #ticketImpresion *, #ticketCorte, #ticketCorte * { visibility: visible; }
             #ticketImpresion, #ticketCorte { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
             .no-print { display: none !important; }
         }
-        /* Scrollbar suave para historial de retiros */
         #listaRetiros::-webkit-scrollbar { width: 4px; }
         #listaRetiros::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
     </style>
@@ -30,7 +28,7 @@
             <form id="loginForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Usuario</label>
-                    <input type="text" id="loginUser" required placeholder="" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="loginUser" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase mb-1">PIN (4 dígitos)</label>
@@ -46,12 +44,12 @@
             <div id="seccionRegistro" class="hidden border-t border-gray-800 pt-4 space-y-4">
                 <p class="text-xs text-amber-400 font-bold uppercase tracking-wider text-center">Registrar Nuevo Operador</p>
                 <div>
-                    <label class="block text-[10px] font-medium text-gray-400 uppercase mb-1">PIN Maestro de Seguridad (Para crear cuentas)</label>
+                    <label class="block text-[10px] font-medium text-gray-400 uppercase mb-1">PIN Maestro de Seguridad</label>
                     <input type="password" id="regPinMaestro" placeholder="PIN de Administrador" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
                     <label class="block text-[10px] font-medium text-gray-400 uppercase mb-1">Nuevo Usuario</label>
-                    <input type="text" id="regUser" placeholder="Nombre único de usuario" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="regUser" placeholder="Nombre único" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-[10px] font-medium text-gray-400 uppercase mb-1">Asignar PIN (4 dígitos)</label>
@@ -65,7 +63,6 @@
         </div>
     </div>
 
-
     <div id="contenidoApp" class="container mx-auto p-4 max-w-6xl hidden">
         <header class="text-center my-6 flex flex-col sm:flex-row justify-between items-center bg-gray-800/40 p-4 rounded-xl border border-gray-800">
             <div class="text-left">
@@ -74,12 +71,26 @@
                 </h1>
                 <p class="text-gray-400 text-xs mt-0.5">Control de accesos, retiros y reportes financieros por método de pago</p>
             </div>
-            <div class="mt-3 sm:mt-0 bg-gray-900 border border-gray-700 px-4 py-2 rounded-xl flex items-center gap-3">
-                <div class="text-right">
-                    <p class="text-[10px] uppercase font-bold text-gray-500">Operador Activo</p>
-                    <p id="displayUsuario" class="text-sm font-bold text-indigo-300">Ninguno</p>
+            
+            <div class="mt-3 sm:mt-0 flex flex-wrap gap-2 items-center">
+                <div class="bg-gray-900 border border-amber-950 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                    <div class="text-left">
+                        <label class="block text-[9px] uppercase font-bold text-amber-500">Fondo Caja Inicial</label>
+                        <div class="flex items-center text-xs font-bold text-amber-300">
+                            <span>$</span>
+                            <input type="number" id="cajaInicialInput" min="0" value="0" class="w-16 bg-transparent border-none text-amber-300 font-bold focus:outline-none p-0 ml-0.5">
+                        </div>
+                    </div>
+                    <button onclick="actualizarFondoCaja()" class="bg-amber-900/60 hover:bg-amber-800 text-amber-200 text-[10px] px-2 py-1 rounded font-bold cursor-pointer transition-colors">✔</button>
                 </div>
-                <button onclick="cerrarSesion()" class="bg-red-950 hover:bg-red-900 text-red-300 text-[10px] font-bold px-2 py-1 rounded border border-red-800 cursor-pointer">Salir</button>
+
+                <div class="bg-gray-900 border border-gray-700 px-4 py-2 rounded-xl flex items-center gap-3">
+                    <div class="text-right">
+                        <p class="text-[10px] uppercase font-bold text-gray-500">Operador Activo</p>
+                        <p id="displayUsuario" class="text-sm font-bold text-indigo-300">Ninguno</p>
+                    </div>
+                    <button onclick="cerrarSesion()" class="bg-red-950 hover:bg-red-900 text-red-300 text-[10px] font-bold px-2 py-1 rounded border border-red-800 cursor-pointer">Salir</button>
+                </div>
             </div>
         </header>
 
@@ -96,15 +107,13 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
             <div class="space-y-6">
                 <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700">
                     <h2 class="text-xl font-semibold mb-4 text-indigo-300 flex items-center gap-2">🎟️ Nuevo Registro</h2>
                     <form id="registroForm" class="space-y-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Nombre</label>
-                            <input type="text" id="nombre" required placeholder="Nombre del asistente" 
-                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="nombre" required placeholder="Nombre del asistente" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
@@ -135,31 +144,24 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Precio ($)</label>
-                            <input type="number" id="precio" required min="0" step="0.01" 
-                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="number" id="precio" required min="0" step="0.01" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
                         </div>
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg transition-colors shadow-md cursor-pointer">
-                            Registrar Entrada
-                        </button>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg transition-colors shadow-md cursor-pointer">Registrar Entrada</button>
                     </form>
                 </div>
 
                 <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-amber-900/30">
                     <h2 class="text-xl font-semibold mb-3 text-amber-400 flex items-center gap-2">💸 Retiro de Caja</h2>
                     <form id="retiroForm" class="space-y-3">
-                        <input type="text" id="retiroConcepto" required placeholder="Concepto (Ej. Pago DJ)" 
-                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white">
+                        <input type="text" id="retiroConcepto" required placeholder="Concepto (Ej. Pago DJ)" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white">
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="number" id="retiroMonto" required min="0.01" step="0.01" placeholder="Monto $" 
-                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white">
+                            <input type="number" id="retiroMonto" required min="0.01" step="0.01" placeholder="Monto $" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white">
                             <select id="retiroTipoPago" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white">
                                 <option value="Efectivo">💵 Efectivo</option>
                                 <option value="Transferencia">📱 Transf.</option>
                             </select>
                         </div>
-                        <button type="submit" class="w-full bg-amber-700 hover:bg-amber-600 text-white font-medium py-1.5 rounded-lg text-xs transition-colors cursor-pointer">
-                            Confirmar Retiro
-                        </button>
+                        <button type="submit" class="w-full bg-amber-700 hover:bg-amber-600 text-white font-medium py-1.5 rounded-lg text-xs transition-colors cursor-pointer">Confirmar Retiro</button>
                     </form>
                     <div class="mt-4 border-t border-gray-700 pt-3">
                         <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Salidas Recientes</p>
@@ -171,7 +173,7 @@
             <div class="md:col-span-2 bg-gray-800 p-5 rounded-xl shadow-lg flex flex-col">
                 <div class="grid grid-cols-3 gap-4 mb-6">
                     <div class="bg-indigo-950/40 border border-indigo-800/60 p-3 rounded-xl text-center">
-                        <p class="text-[10px] text-indigo-300 uppercase font-semibold" id="labelDinero">Caja Filtrada</p>
+                        <p class="text-[10px] text-indigo-300 uppercase font-semibold" id="labelDinero">Caja Total Real</p>
                         <span id="totalDinero" class="text-xl font-bold text-indigo-400">$0.00</span>
                     </div>
                     <div class="bg-emerald-950/40 border border-emerald-800/60 p-3 rounded-xl text-center">
@@ -200,7 +202,7 @@
                             <option value="Membresía canje">Membresía 50% canje</option>
                             <option value="1 clase">1 clase</option>
                             <option value="2 clases">2 clases</option>
-                                    <option value="Miembro activo">Miembro activo</option>
+                            <option value="Miembro activo">Miembro activo</option>
                             <option value="Devolución">Devoluciones</option>
                         </select>
                         <input type="text" id="buscador" placeholder="Buscar nombre..." class="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
@@ -270,13 +272,14 @@
             
             <div class="space-y-2 text-left text-xs font-mono">
                 <div class="flex justify-between font-bold text-gray-700 border-b border-gray-200 pb-1"><span>CONCEPTO</span><span>EFECTIVO / TRANSF.</span></div>
+                <div class="flex justify-between text-amber-600 font-bold"><span>(+) FONDO INICIAL DE CAJA:</span><span id="corteFondoInicial"></span></div>
                 <div class="flex justify-between"><span>(+) INGRESOS BRUTOS:</span><span id="corteIngresos"></span></div>
                 <div class="flex justify-between"><span>(-) DEVOLUCIONES:</span><span id="corteDevoluciones"></span></div>
                 <div class="flex justify-between"><span>(-) RETIROS / GASTOS:</span><span id="corteRetiros"></span></div>
                 <div class="border-b border-gray-300 my-2"></div>
                 
                 <div class="bg-gray-100 p-2 rounded space-y-1 font-bold text-sm">
-                    <div class="flex justify-between text-emerald-800"><span>(=) NETO EFECTIVO (CAJA):</span><span id="corteNetoEfectivo"></span></div>
+                    <div class="flex justify-between text-emerald-800"><span>(=) NETO EFECTIVO (EN CAJA):</span><span id="corteNetoEfectivo"></span></div>
                     <div class="flex justify-between text-blue-800"><span>(=) NETO TRANSFERENCIAS:</span><span id="corteNetoTransf"></span></div>
                     <div class="border-t border-gray-300 my-1"></div>
                     <div class="flex justify-between text-indigo-900 text-base"><span>(=) TOTAL NETO COMBINADO:</span><span id="corteTotalNeto"></span></div>
@@ -310,14 +313,16 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
         const registrosRef = ref(db, 'asistencias');
         const retirosRef = ref(db, 'retiros');
         const usuariosRef = ref(db, 'usuarios');
+        const cajaRef = ref(db, 'caja_config/fondo_inicial');
 
         let registros = [];
         let retiros = [];
+        let fondoCajaInicial = 0; 
         
-        // ⏱️ PARÁMETROS DE TIEMPO PARA LA SESIÓN (10 MINUTOS)
         let usuarioActivo = null;
         const SESION_DURACION = 10 * 60 * 1000; 
 
@@ -325,7 +330,6 @@
         const ultimaActividad = localStorage.getItem('zaicheck_timestamp');
         const ahoraInit = Date.now();
 
-        // Validación inicial al cargar la página o presionar F5
         if (sesionGuardada && ultimaActividad && (ahoraInit - ultimaActividad < SESION_DURACION)) {
             usuarioActivo = sesionGuardada;
             localStorage.setItem('zaicheck_timestamp', ahoraInit); 
@@ -336,35 +340,21 @@
 
         const PIN_MAESTRO_SEGURIDAD = "2026"; 
 
-        // 🎯 MATRIZ DE PRECIOS ACTUALIZADA
         const PRECIOS_SOPORTE = { 
-            "FullPass": 200, 
-            "Promo": 150, 
-            "2x1": 200, 
-            "Preventa clases": 100, 
-            "Preventa social": 80, 
-            "Cortesía": 0,
-            "Membresía nueva": 450,
-            "Membresía renovación": 450,
-            "Membresía canje": 225,
-            "1 clase": 100,
-            "2 clases": 150,
-            "Miembro activo": 0
+            "FullPass": 200, "Promo": 150, "2x1": 200, "Preventa clases": 100, "Preventa social": 80, "Cortesía": 0,
+            "Membresía nueva": 450, "Membresía renovación": 450, "Membresía canje": 225, "1 clase": 100, "2 clases": 150, "Miembro activo": 0
         };
 
         document.getElementById('modo').addEventListener('change', (e) => {
             document.getElementById('precio').value = PRECIOS_SOPORTE[e.target.value] || 0;
         });
-        
-        // Carga dinámicamente el precio de la primera opción seleccionada por defecto
         document.getElementById('precio').value = PRECIOS_SOPORTE[document.getElementById('modo').value] || 0; 
 
-        // --- SISTEMA DE AUTENTICACIÓN ---
         window.conmutarVistaRegistro = (mostrar) => {
             document.getElementById('seccionRegistro').classList.toggle('hidden', !mostrar);
         };
 
-        // Procesar Login
+        // LOGIN
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUser').value.trim().toLowerCase();
@@ -385,38 +375,35 @@
             }
         });
 
-        // Crear Nuevos Operadores
+        // CREACIÓN DE USUARIOS
         window.procesarRegistro = async () => {
             const pinMaestro = document.getElementById('regPinMaestro').value;
             const nuevoUser = document.getElementById('regUser').value.trim();
             const nuevoPin = document.getElementById('regPin').value;
 
             if (pinMaestro !== PIN_MAESTRO_SEGURIDAD) return alert("El PIN Maestro de seguridad es inválido.");
-            if (!nuevoUser || nuevoPin.length !== 4 || isNaN(nuevoPin)) return alert("El usuario y el PIN (4 números) son obligatorios.");
+            if (!nuevoUser || nuevoPin.length !== 4 || isNaN(nuevoPin)) return alert("Datos obligatorios.");
 
             const nodoUser = nuevoUser.toLowerCase();
 
             try {
                 const snapshot = await get(ref(db, `usuarios/${nodoUser}`));
-                if (snapshot.exists()) return alert("Este nombre de usuario ya está registrado.");
+                if (snapshot.exists()) return alert("Este nombre de usuario ya existe.");
 
                 await set(ref(db, `usuarios/${nodoUser}`), {
-                    username: nodoUser,
-                    nombreOriginal: nuevoUser,
-                    pin: nuevoPin
+                    username: nodoUser, nombreOriginal: nuevoUser, pin: nuevoPin
                 });
 
-                alert(`¡Usuario '${nuevoUser}' creado con éxito! Ya puede iniciar sesión.`);
+                alert(`¡Usuario '${nuevoUser}' creado con éxito!`);
                 document.getElementById('regUser').value = '';
                 document.getElementById('regPin').value = '';
                 conmutarVistaRegistro(false);
             } catch (err) {
-                alert("Error al registrar: " + err.message);
+                alert("Error: " + err.message);
             }
         };
 
         function concederAccesoApp() {
-            // Guarda permanentemente al usuario y marca de tiempo en localStorage
             localStorage.setItem('zaicheck_user', usuarioActivo);
             localStorage.setItem('zaicheck_timestamp', Date.now());
 
@@ -425,6 +412,12 @@
             document.getElementById('contenidoApp').classList.remove('hidden');
             document.getElementById('loginForm').reset();
             
+            onValue(cajaRef, (snapshot) => {
+                fondoCajaInicial = snapshot.exists() ? parseFloat(snapshot.val()) : 0;
+                document.getElementById('cajaInicialInput').value = fondoCajaInicial;
+                renderAll();
+            });
+
             onValue(registrosRef, (snapshot) => {
                 registros = snapshot.val() ? Object.values(snapshot.val()).sort((a,b) => b.timestamp - a.timestamp) : [];
                 renderAll();
@@ -436,6 +429,15 @@
             });
         }
 
+        window.actualizarFondoCaja = () => {
+            const mnt = parseFloat(document.getElementById('cajaInicialInput').value);
+            if(isNaN(mnt) || mnt < 0) return alert("Ingresa un monto válido para el fondo de caja.");
+            
+            set(cajaRef, mnt)
+                .then(() => alert("✨ Fondo inicial de caja guardado con éxito."))
+                .catch(err => alert("Error al guardar: " + err.message));
+        };
+
         window.cerrarSesion = () => {
             usuarioActivo = null;
             localStorage.removeItem('zaicheck_user'); 
@@ -444,13 +446,9 @@
             document.getElementById('pantallaLogin').classList.remove('hidden');
         };
 
-        // INGRESO AUTOMÁTICO SI EXISTE SESIÓN ACTIVA VALIDA
-        if (usuarioActivo) {
-            concederAccesoApp();
-        }
+        if (usuarioActivo) concederAccesoApp();
 
-
-        // --- LOGICA DE REGISTROS CON FIRMA DE OPERADOR ---
+        // ENTRADAS
         document.getElementById('registroForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = crypto.randomUUID();
@@ -473,7 +471,7 @@
             document.getElementById('precio').value = PRECIOS_SOPORTE[document.getElementById('modo').value] || 0;
         });
 
-        // REGISTROS RETIROS
+        // RETIROS
         document.getElementById('retiroForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = crypto.randomUUID();
@@ -486,19 +484,13 @@
                 id, concepto, monto, tipoPago,
                 operador: usuarioActivo,
                 fecha: ahora.toLocaleDateString('es-MX'),
-                hora: RegulatoryHora(ahora),
-                timestamp: electromagneticTime(ahora)
+                hora: ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: ahora.getTime()
             });
             e.target.reset();
         });
 
-        function RegulatoryHora(d) {
-            return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-        }
-        function electromagneticTime(d) {
-            return d.getTime();
-        }
-
+        // RENDERS Y CÁLCULOS
         function renderAll() {
             const busc = document.getElementById('buscador').value.toLowerCase();
             const mod = document.getElementById('filtroModo').value;
@@ -509,7 +501,6 @@
 
             tablaD.innerHTML = ''; listaM.innerHTML = ''; listaR.innerHTML = '';
 
-            // Render de Retiros
             retiros.forEach(ret => {
                 const iconoPago = ret.tipoPago === 'Transferencia' ? '📱' : '💵';
                 const d = document.createElement('div');
@@ -519,30 +510,29 @@
                 listaR.appendChild(d);
             });
 
-            // APLICACIÓN DE FILTRADO DINÁMICO
             const filtrados = registros.filter(r => (mod === 'TODOS' || r.modo === mod) && r.nombre.toLowerCase().includes(busc));
             document.getElementById('noData').classList.toggle('hidden', filtrados.length > 0);
 
-            // RE-CÁLCULO DE DASHBOARD
             const dineroFiltrado = filtrados.reduce((s, r) => s + r.precio, 0);
             const retirosTotales = retiros.reduce((s, r) => s + r.monto, 0);
-            const balanceNetoFiltrado = mod === 'TODOS' && busc === '' ? (dineroFiltrado - retirosTotales) : dineroFiltrado;
             
-            document.getElementById('labelDinero').textContent = (mod === 'TODOS' && busc === '') ? "Caja Neta Total" : "Caja de Filtro";
+            let balanceNetoFiltrado = dineroFiltrado;
+            if (mod === 'TODOS' && busc === '') {
+                document.getElementById('labelDinero').textContent = "Caja Total Real";
+                balanceNetoFiltrado = (fondoCajaInicial + dineroFiltrado - retirosTotales);
+            } else {
+                document.getElementById('labelDinero').textContent = "Caja de Filtro";
+            }
+            
             document.getElementById('totalDinero').textContent = fmt.format(balanceNetoFiltrado);
             
             const insideFiltrados = filtrados.filter(r => r.checked && r.modo !== 'Devolución').length;
             const totalModoFiltrado = filtrados.filter(r => r.modo !== 'Devolución').length;
             document.getElementById('totalAsistentes').textContent = `${insideFiltrados} / ${totalModoFiltrado}`;
-            
-            // Cuenta "Promos" o "Membresías" bajo métricas de descuento
             document.getElementById('totalParciales').textContent = filtrados.filter(r => r.modo === 'Promo' || r.modo === 'Membresía canje').length;
 
-            // Renderizar filas y tarjetas filtradas
             filtrados.forEach(r => {
                 const esDev = r.modo === 'Devolución';
-                
-                // Color dinámico según tipo de acceso
                 let colorClass = 'text-indigo-300 border-indigo-700';
                 if(r.modo === 'Promo' || r.modo.includes('Preventa') || r.modo.includes('clase')) {
                     colorClass = 'text-amber-400 border-amber-800';
@@ -596,7 +586,7 @@
         window.borrarRetiro = (id) => confirm("¿Eliminar este retiro?") && remove(ref(db, 'retiros/' + id));
         window.toggleCheck = (id, s) => set(ref(db, `asistencias/${id}/checked`), !s);
         window.hacerDevolucion = (id, nom, pre) => {
-            if(confirm(`¿Confirmar devolución para ${nom}? Se descontará de su método original.`)) {
+            if(confirm(`¿Confirmar devolución para ${nom}?`)) {
                 set(ref(db, `asistencias/${id}/modo`), 'Devolución');
                 set(ref(db, `asistencias/${id}/precio`), -Math.abs(pre));
                 set(ref(db, `asistencias/${id}/checked`), false);
@@ -604,7 +594,7 @@
             }
         };
 
-        // LÓGICA DEL CORTE DE CAJA
+        // GENERAR CORTE
         window.generarCorteCaja = () => {
             const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
             const ahora = new Date();
@@ -616,11 +606,12 @@
             const retEfe = retiros.filter(r => r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.monto, 0);
             const retTra = retiros.filter(r => r.tipoPago === 'Transferencia').reduce((s, r) => s + r.monto, 0);
 
-            const netoEfe = ingEfe - devEfe - retEfe;
+            const netoEfe = fondoCajaInicial + ingEfe - devEfe - retEfe;
             const netoTra = ingTra - devTra - retTra;
             const netoGlobal = netoEfe + netoTra;
 
             document.getElementById('corteFechaHora').textContent = `${ahora.toLocaleDateString('es-MX')} - ${ahora.toLocaleTimeString('es-MX')}`;
+            document.getElementById('corteFondoInicial').textContent = fmt.format(fondoCajaInicial);
             
             document.getElementById('corteIngresos').innerHTML = `<div class="text-right">💵 ${fmt.format(ingEfe)}<br>📱 ${fmt.format(ingTra)}</div>`;
             document.getElementById('corteDevoluciones').innerHTML = `<div class="text-right text-red-700">💵 ${fmt.format(devEfe)}<br>📱 ${fmt.format(devTra)}</div>`;
@@ -661,9 +652,14 @@
         document.getElementById('buscador').addEventListener('input', renderAll);
         document.getElementById('filtroModo').addEventListener('change', renderAll);
 
-        // EXPORTAR EXCEL
+
+        // =========================================================================
+        // 📊 FUNCIÓN EXPORTAR EXCEL CON FORMATO UNIVERSAL PARA EXCEL MÓVIL Y DESKTOP
+        // =========================================================================
         window.exportarExcel = () => {
-            if (registros.length === 0 && retiros.length === 0) return alert("No hay movimientos para exportar.");
+            if (registros.length === 0 && retiros.length === 0 && fondoCajaInicial === 0) {
+                return alert("No hay movimientos para exportar.");
+            }
             
             const ingEfe = registros.filter(r => r.modo !== 'Devolución' && r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.precio, 0);
             const ingTra = registros.filter(r => r.modo !== 'Devolución' && r.tipoPago === 'Transferencia').reduce((s, r) => s + r.precio, 0);
@@ -672,136 +668,81 @@
             const retEfe = retiros.filter(r => r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.monto, 0);
             const retTra = retiros.filter(r => r.tipoPago === 'Transferencia').reduce((s, r) => s + r.monto, 0);
 
-            const netoEfe = ingEfe - devEfe - retEfe;
+            const netoEfe = fondoCajaInicial + ingEfe - devEfe - retEfe;
             const netoTra = ingTra - devTra - retTra;
 
-            let excelTemplate = `
-            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-            <head><meta http-equiv="Content-type" content="text/html;charset=utf-8" /></head>
-            <body>
-                <h3 style="color: #4f46e5; font-family: sans-serif; margin-bottom: 5px;">1. Registro de Entradas y Accesos</h3>
-                <table border="1" style="font-family: sans-serif; border-collapse: collapse; margin-bottom: 30px;">
-                    <tr style="background-color: #4f46e5; color: #ffffff; font-weight: bold;">
-                        <th style="padding: 5px 10px;">Nombre</th>
-                        <th style="padding: 5px 10px;">Modo de Acceso</th>
-                        <th style="padding: 5px 10px;">Forma de Pago</th>
-                        <th style="padding: 5px 10px;">Precio ($)</th>
-                        <th style="padding: 5px 10px;">Fecha</th>
-                        <th style="padding: 5px 10px;">Hora</th>
-                        <th style="padding: 5px 10px;">Atendió</th>
-                        <th style="padding: 5px 10px;">Estado Check-In</th>
-                    </tr>`;
+            // 'sep=;' le dice a Excel de inmediato cómo parsear las columnas de forma nativa
+            let csvContent = "sep=;\n";
 
+            // 1. SECCIÓN CONTABLE DE INGRESOS Y ENTRADAS
+            csvContent += "1. REGISTRO DE ENTRADAS Y ACCESOS\n";
+            csvContent += "Nombre;Modo de Acceso;Forma de Pago;Precio ($);Fecha;Hora;Atendió;Estado Check-In\n";
+            
             registros.forEach(r => {
                 const est = r.modo === 'Devolución' ? "DEVOLUCION" : (r.checked ? "DENTRO" : "PENDIENTE");
-                excelTemplate += `
-                    <tr>
-                        <td style="padding: 5px;">${r.nombre}</td>
-                        <td style="padding: 5px;">${r.modo}</td>
-                        <td style="padding: 5px; text-align: center;">${r.tipoPago || 'Efectivo'}</td>
-                        <td style="padding: 5px; text-align: right;">${r.precio}</td>
-                        <td style="padding: 5px; text-align: center;">${r.fecha || ""}</td>
-                        <td style="padding: 5px; text-align: center;">${r.hora || ""}</td>
-                        <td style="padding: 5px; text-align: center;">${r.operador || "Previo"}</td>
-                        <td style="padding: 5px; text-align: center;">${est}</td>
-                    </tr>`;
+                // Sanitizamos los textos para que comas o puntos y comas accidentales no rompan las celdas
+                const nombreLimpio = r.nombre.replace(/;/g, " ").replace(/,/g, " "); 
+                csvContent += `"${nombreLimpio}";"${r.modo}";"${r.tipoPago || 'Efectivo'}";${r.precio};"${r.fecha || ""}";"${r.hora || ""}";"${r.operador || "Previo"}";"${est}"\n`;
             });
 
-            excelTemplate += `
-                </table>
+            csvContent += "\n\n";
 
-                <h3 style="color: #d97706; font-family: sans-serif; margin-bottom: 5px;">2. Historial de Retiros de Caja (Gastos/Salidas)</h3>
-                <table border="1" style="font-family: sans-serif; border-collapse: collapse; margin-bottom: 30px;">
-                    <tr style="background-color: #d97706; color: #ffffff; font-weight: bold;">
-                        <th style="padding: 5px 20px;">Concepto / Motivo del Retiro</th>
-                        <th style="padding: 5px 20px;">Forma de Retiro</th>
-                        <th style="padding: 5px 20px;">Monto Extraído ($)</th>
-                        <th style="padding: 5px 20px;">Autorizó / Retiró</th>
-                        <th style="padding: 5px 20px;">Fecha</th>
-                        <th style="padding: 5px 20px;">Hora Exacta</th>
-                    </tr>`;
-
+            // 2. SECCIÓN CONTABLE DE RETIROS
+            csvContent += "2. HISTORIAL DE RETIROS DE CAJA (GASTOS/SALIDAS)\n";
+            csvContent += "Concepto / Motivo del Retiro;Forma de Retiro;Monto Extraído ($);Autorizó / Retiró;Fecha;Hora Exacta\n";
+            
             retiros.forEach(ret => {
-                excelTemplate += `
-                    <tr>
-                        <td style="padding: 5px;">${ret.concepto}</td>
-                        <td style="padding: 5px; text-align: center;">${ret.tipoPago || 'Efectivo'}</td>
-                        <td style="padding: 5px; text-align: right; color: #dc2626; font-weight: bold;">-${ret.monto}</td>
-                        <td style="padding: 5px; text-align: center;">${ret.operador || "Sistema"}</td>
-                        <td style="padding: 5px; text-align: center;">${ret.fecha || ""}</td>
-                        <td style="padding: 5px; text-align: center;">${ret.hora}</td>
-                    </tr>`;
+                const conceptoLimpio = ret.concepto.replace(/;/g, " ").replace(/,/g, " ");
+                csvContent += `"${conceptoLimpio}";"${ret.tipoPago || 'Efectivo'}";-${ret.monto};"${ret.operador || "Sistema"}";"${ret.fecha || ""}";"${ret.hora}"\n`;
             });
 
-            excelTemplate += `
-                </table>
+            csvContent += "\n\n";
 
-                <h3 style="color: #111827; font-family: sans-serif; margin-bottom: 5px;">3. Resumen Financiero por Método de Pago</h3>
-                <table border="1" style="font-family: sans-serif; border-collapse: collapse; background-color: #f9fafb;">
-                    <tr style="background-color: #1f2937; color: #ffffff; font-weight: bold;">
-                        <th style="padding: 6px 15px; text-align: left;">Módulo Contable</th>
-                        <th style="padding: 6px 15px; text-align: right;">💵 Efectivo</th>
-                        <th style="padding: 6px 15px; text-align: right;">📱 Transferencia</th>
-                    </tr>
-                    <tr>
-                        <td style="padding: 5px 15px; font-weight: bold;">(+) Ingresos Brutos:</td>
-                        <td style="padding: 5px 15px; text-align: right; color: #15803d;">$ ${ingEfe.toFixed(2)}</td>
-                        <td style="padding: 5px 15px; text-align: right; color: #15803d;">$ ${ingTra.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 5px 15px; font-weight: bold;">(-) Devoluciones:</td>
-                        <td style="padding: 5px 15px; text-align: right; color: #b91c1c;">$ ${devEfe.toFixed(2)}</td>
-                        <td style="padding: 5px 15px; text-align: right; color: #b91c1c;">$ ${devTra.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 5px 15px; font-weight: bold;">(-) Retiros Realizados:</td>
-                        <td style="padding: 5px 15px; text-align: right; color: #b45309;">$ ${retEfe.toFixed(2)}</td>
-                        <td style="padding: 5px 15px; text-align: right; color: #b45309;">$ ${retTra.toFixed(2)}</td>
-                    </tr>
-                    <tr style="background-color: #e0e7ff; font-weight: bold;">
-                        <td style="padding: 8px 15px; color: #1e3a8a;">(=) BALANCES NETOS:</td>
-                        <td style="padding: 8px 15px; text-align: right; color: #15803d;">$ ${netoEfe.toFixed(2)}</td>
-                        <td style="padding: 8px 15px; text-align: right; color: #2563eb;">$ ${netoTra.toFixed(2)}</td>
-                    </tr>
-                    <tr style="background-color: #312e81; color: #ffffff; font-weight: bold; font-size: 13px;">
-                        <td style="padding: 8px 15px;">TOTAL NETO EN CAJA COMBINADO:</td>
-                        <td colspan="2" style="padding: 8px 15px; text-align: center; font-size: 14px;">$ ${(netoEfe + netoTra).toFixed(2)}</td>
-                    </tr>
-                </table>
-            </body>
-            </html>`;
+            // 3. TABLA DE BALANCE FINANCIERO INTEGRAL
+            csvContent += "3. RESUMEN FINANCIERO POR MÉTODO DE PAGO\n";
+            csvContent += "Módulo Contable;Efectivo ($);Transferencia ($)\n";
+            csvContent += `(+) FONDO INICIAL DE CAJA;${fondoCajaInicial.toFixed(2)};0.00\n`;
+            csvContent += `(+) Ingresos Brutos;${ingEfe.toFixed(2)};${ingTra.toFixed(2)}\n`;
+            csvContent += `(-) Devoluciones;${devEfe.toFixed(2)};${devTra.toFixed(2)}\n`;
+            csvContent += `(-) Retiros Realizados;${retEfe.toFixed(2)};${retTra.toFixed(2)}\n`;
+            csvContent += `(=) BALANCES NETOS DE CIERRE;${netoEfe.toFixed(2)};${netoTra.toFixed(2)}\n`;
+            csvContent += `TOTAL NETO EN CAJA COMBINADO;${(netoEfe + netoTra).toFixed(2)};\n`;
 
-            const blob = new Blob([excelTemplate], { type: "application/vnd.ms-excel;charset=utf-8;" });
+            // Creamos un Blob inyectando el BOM (Byte Order Mark) '\uFEFF' para asegurar UTF-8 con soporte de acentos y caracteres latinos
+            const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `Reporte_Zaicheck_TarifasNuevas_${new Date().toISOString().split('T')[0]}.xls`;
+            link.download = `Reporte_Zaicheck_Universal_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
         };
 
-        window.limpiarRegistros = () => confirm("¿BORRAR TODO permanentemente?") && (remove(registrosRef), remove(retirosRef));
 
-        // ⏱️ CONTROLADORES DE TIEMPO Y DETECCIÓN DE INACTIVIDAD FLUIDA
+        // LIMPIEZA TOTAL
+        window.limpiarRegistros = () => {
+            if(confirm("¿BORRAR TODO permanentemente? Se resetearán asistencias, retiros y fondo de caja.")) {
+                remove(registrosRef);
+                remove(retirosRef);
+                set(cajaRef, 0);
+            }
+        };
+
+        // TEMPORIZADORES DE INACTIVIDAD
         function actualizarActividad() {
             if (usuarioActivo) {
                 const tiempoUltimo = parseInt(localStorage.getItem('zaicheck_timestamp') || "0");
-                const ahora = Date.now();
-
-                // Validación reactiva ante clics
-                if (ahora - tiempoUltimo > SESION_DURACION) {
+                if (Date.now() - tiempoUltimo > SESION_DURACION) {
                     alert("Tu sesión ha expirado por inactividad (10 minutos).");
                     cerrarSesion();
                 } else {
-                    localStorage.setItem('zaicheck_timestamp', ahora);
+                    localStorage.setItem('zaicheck_timestamp', Date.now());
                 }
             }
         }
 
-        // Detecta interacciones físicas en la ventana actual para refrescar el contador
         window.addEventListener('click', actualizarActividad);
         window.addEventListener('keypress', actualizarActividad);
         window.addEventListener('scroll', actualizarActividad);
 
-        // Ciclo pasivo de validación en segundo plano (Revisa el estatus cada 15 segundos)
         setInterval(() => {
             if (usuarioActivo) {
                 const tiempoUltimo = parseInt(localStorage.getItem('zaicheck_timestamp') || "0");
