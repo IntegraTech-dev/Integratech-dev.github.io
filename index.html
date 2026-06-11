@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BAILAMOS MEXICO ZAICHECK - PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Librerías añadidas para generación y lectura de QR -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -241,7 +240,6 @@
         </div>
     </div>
 
-    <!-- MODAL VISTA COMPROBANTE TICKET (SOPORTE QR DINÁMICO) -->
     <div id="modalComprobante" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-sm w-full text-center flex flex-col" id="ticketImpresion">
             <div class="text-2xl font-black text-indigo-900 tracking-tight">BAILAMOS MEXICO</div>
@@ -261,7 +259,6 @@
                 </div>
             </div>
             
-            <!-- Contenedor donde se dibuja el QR si aplica -->
             <div id="contenedorQRComprobante" class="flex justify-center my-4 hidden">
                 <div id="qrcode"></div>
             </div>
@@ -275,7 +272,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE LECTURA DE QR POR CÁMARA -->
     <div id="modalEscaner" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl max-w-md w-full text-center">
             <h3 class="text-lg font-bold text-indigo-400 mb-2">📷 Escanear Pase de Membresía</h3>
@@ -287,7 +283,6 @@
         </div>
     </div>
 
-    <!-- PANTALLA COMPLETA DE CONFIRMACIÓN: PASE AUTORIZADO -->
     <div id="pantallaPaseOk" class="fixed inset-0 bg-emerald-950/95 flex items-center justify-center p-4 hidden z-50 transition-all">
         <div class="bg-white text-gray-900 p-8 rounded-3xl max-w-sm w-full text-center border-4 border-emerald-500 shadow-2xl">
             <div class="text-6xl mb-3 animate-bounce">✅</div>
@@ -315,7 +310,6 @@
         </div>
     </div>
 
-    <!-- MODAL CORTE DE CAJA -->
     <div id="modalCorte" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-md w-full text-center flex flex-col" id="ticketCorte">
             <div class="text-2xl font-black text-gray-900 tracking-tight">CORTE DE CAJA</div>
@@ -541,7 +535,7 @@
                 operador: usuarioActivo,
                 fecha: ahora.toLocaleDateString('es-MX'),
                 hora: ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
-                timestamp: aos.getTime()
+                timestamp: ahora.getTime()
             });
             e.target.reset();
         });
@@ -735,8 +729,10 @@
         window.abrirEscanerQR = () => {
             document.getElementById('modalEscaner').classList.remove('hidden');
             
-            // Instanciar el lector de cámara nativo
-            html5QrcodeScanner = new Html5Qrcode("reader");
+            // Instanciar el lector de cámara nativo si no existe
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("reader");
+            }
             
             html5QrcodeScanner.start(
                 { facingMode: "environment" }, // Prioriza cámara trasera
@@ -747,20 +743,23 @@
                 onQrScanSuccess,
                 onQrScanFailure
             ).catch(err => {
-                alert("No se pudo iniciar la cámara: " + err);
-                cerrarEscanerQR();
+                console.error("No se pudo iniciar la cámara: ", err);
+                // Si falla al abrir, simplemente ocultamos el modal de forma segura
+                document.getElementById('modalEscaner').classList.add('hidden');
             });
         };
 
-        window.cerrarEscanerQR = () => {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => {
-                    document.getElementById('modalEscaner').classList.add('hidden');
-                }).catch(() => {
-                    document.getElementById('modalEscaner').classList.add('hidden');
-                });
-            } else {
-                document.getElementById('modalEscaner').classList.add('hidden');
+        window.cerrarEscanerQR = async () => {
+            // Primero ocultamos visualmente el modal para dar respuesta inmediata al usuario
+            document.getElementById('modalEscaner').classList.add('hidden');
+            
+            // Apagamos la cámara de manera segura e independiente sin congelar el flujo principal
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                try {
+                    await html5QrcodeScanner.stop();
+                } catch (err) {
+                    console.warn("La cámara ya estaba cerrada o hubo un retraso al detenerla:", err);
+                }
             }
         };
 
