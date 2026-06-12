@@ -71,7 +71,12 @@
                 <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 tracking-wide">
                     BAILAMOS MEXICO ZAICHECK
                 </h1>
-                <p class="text-gray-400 text-xs mt-0.5">Control de accesos, retiros y reportes financieros por método de pago</p>
+                <p class="text-gray-400 text-xs mt-0.5">Control por Jornadas Operativas Flexibles</p>
+                <div class="mt-2 inline-flex items-center gap-2 bg-indigo-950/60 border border-indigo-800 px-2.5 py-1 rounded-lg text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="indicadorJornadaColor"></span>
+                    <span class="text-gray-300 font-medium">Jornada: </span>
+                    <span id="txtJornadaActiva" class="font-bold text-indigo-300">Cargando...</span>
+                </div>
             </div>
             
             <div class="mt-3 sm:mt-0 flex flex-wrap gap-2 items-center">
@@ -83,7 +88,7 @@
                             <input type="number" id="cajaInicialInput" min="0" value="0" class="w-16 bg-transparent border-none text-amber-300 font-bold focus:outline-none p-0 ml-0.5">
                         </div>
                     </div>
-                    <button onclick="actualizarFondoCaja()" class="bg-amber-900/60 hover:bg-amber-800 text-amber-200 text-[10px] px-2 py-1 rounded font-bold cursor-pointer transition-colors">✔</button>
+                    <button onclick="actualizarFondoCaja()" id="btnGuardarCaja" class="bg-amber-900/60 hover:bg-amber-800 text-amber-200 text-[10px] px-2 py-1 rounded font-bold cursor-pointer transition-colors">✔</button>
                 </div>
 
                 <div class="bg-gray-900 border border-gray-700 px-4 py-2 rounded-xl flex items-center gap-3">
@@ -96,24 +101,39 @@
             </div>
         </header>
 
-        <div class="flex flex-wrap justify-end gap-3 mb-4">
-            <button onclick="abrirEscanerQR()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
-                📷 Escanear QR Membresía
-            </button>
-            <button onclick="generarCorteCaja()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
-                🔒 Hacer Corte de Caja
-            </button>
-            <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
-                📊 Exportar reporte Completo
-            </button>
-            <button onclick="limpiarRegistros()" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-semibold px-4 py-2 rounded-lg border border-red-900/50 transition-colors cursor-pointer">
-                🗑️ Limpiar Todo
-            </button>
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-4 bg-gray-800/20 p-3 rounded-xl border border-gray-800/60">
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">📅 Historial:</label>
+                <select id="filtroJornadaHistorica" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-indigo-300 font-bold focus:outline-none focus:border-indigo-500">
+                    <option value="ACTUAL">🟢 Jornada en Curso</option>
+                </select>
+            </div>
+
+            <div class="flex flex-wrap gap-2 justify-end">
+                <button onclick="abrirEscanerQR()" id="btnEscanear" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
+                    📷 Escanear QR Membresía
+                </button>
+                <button onclick="generarCorteCaja()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
+                    🔒 Hacer Corte de Caja
+                </button>
+                <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
+                    📊 Exportar reporte Completo
+                </button>
+                <button onclick="terminarActividadesJornada()" id="btnTerminarActividades" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
+                    🛑 Terminar Actividades
+                </button>
+                <button onclick="limpiarRegistros()" id="btnLimpiarTodo" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-semibold px-4 py-2 rounded-lg border border-red-900/50 transition-colors cursor-pointer">
+                    🗑️ Limpiar Historial
+                </button>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="space-y-6">
-                <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700">
+                <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700 relative overflow-hidden" id="contenedorFormRegistro">
+                    <div id="bloqueoHistorialForm" class="absolute inset-0 bg-gray-900/90 backdrop-blur-xs flex items-center justify-center text-center p-4 hidden z-20">
+                        <p class="text-xs text-amber-400 font-bold">⚠️ Modo Consulta Histórica.<br>No se pueden añadir registros aquí.</p>
+                    </div>
                     <h2 class="text-xl font-semibold mb-4 text-indigo-300 flex items-center gap-2">🎟️ Nuevo Registro</h2>
                     <form id="registroForm" class="space-y-4">
                         <div>
@@ -155,7 +175,10 @@
                     </form>
                 </div>
 
-                <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-amber-900/30">
+                <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-amber-900/30 relative overflow-hidden" id="contenedorFormRetiro">
+                    <div id="bloqueoHistorialRetiro" class="absolute inset-0 bg-gray-900/90 backdrop-blur-xs flex items-center justify-center text-center p-4 hidden z-20">
+                        <p class="text-xs text-amber-400 font-bold">⚠️ Vista Histórica Bloqueada.</p>
+                    </div>
                     <h2 class="text-xl font-semibold mb-3 text-amber-400 flex items-center gap-2">💸 Retiro de Caja</h2>
                     <form id="retiroForm" class="space-y-3">
                         <input type="text" id="retiroConcepto" required placeholder="Concepto (Ej. Pago DJ)" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white">
@@ -240,6 +263,7 @@
         </div>
     </div>
 
+    <!-- MODAL VISTA COMPROBANTE TICKET -->
     <div id="modalComprobante" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-sm w-full text-center flex flex-col" id="ticketImpresion">
             <div class="text-2xl font-black text-indigo-900 tracking-tight">BAILAMOS MEXICO</div>
@@ -272,6 +296,7 @@
         </div>
     </div>
 
+    <!-- MODAL DE LECTURA DE QR POR CÁMARA -->
     <div id="modalEscaner" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl max-w-md w-full text-center">
             <h3 class="text-lg font-bold text-indigo-400 mb-2">📷 Escanear Pase de Membresía</h3>
@@ -283,6 +308,7 @@
         </div>
     </div>
 
+    <!-- PANTALLA COMPLETA DE CONFIRMACIÓN -->
     <div id="pantallaPaseOk" class="fixed inset-0 bg-emerald-950/95 flex items-center justify-center p-4 hidden z-50 transition-all">
         <div class="bg-white text-gray-900 p-8 rounded-3xl max-w-sm w-full text-center border-4 border-emerald-500 shadow-2xl">
             <div class="text-6xl mb-3 animate-bounce">✅</div>
@@ -310,6 +336,7 @@
         </div>
     </div>
 
+    <!-- MODAL CORTE DE CAJA (SIN MÉTRICAS DE ASISTENCIA) -->
     <div id="modalCorte" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-md w-full text-center flex flex-col" id="ticketCorte">
             <div class="text-2xl font-black text-gray-900 tracking-tight">CORTE DE CAJA</div>
@@ -324,20 +351,17 @@
                 <div class="flex justify-between"><span>(+) INGRESOS BRUTOS:</span><span id="corteIngresos"></span></div>
                 <div class="flex justify-between"><span>(-) DEVOLUCIONES:</span><span id="corteDevoluciones"></span></div>
                 <div class="flex justify-between"><span>(-) RETIROS / GASTOS:</span><span id="corteRetiros"></span></div>
+                
+                <div id="corteDetalleRetirosLista" class="text-[10px] text-gray-500 pl-4 border-l border-gray-300 my-1 space-y-0.5"></div>
+                
                 <div class="border-b border-gray-300 my-2"></div>
                 
                 <div class="bg-gray-100 p-2 rounded space-y-1 font-bold text-sm">
                     <div class="flex justify-between text-emerald-800"><span>(=) NETO EFECTIVO (EN CAJA):</span><span id="corteNetoEfectivo"></span></div>
-                    <div class="flex justify-between text-blue-800"><span>(=) NETO TRANSFERENCIAS:</span><span id="corteNetoTransf"></span></div>
+                    <div class="flex justify-between text-blue-800"><span>(=) NETO TRANSFERENCIAS:</span><span id="corteNetoTra"></span></div>
                     <div class="border-t border-gray-300 my-1"></div>
                     <div class="flex justify-between text-indigo-900 text-base"><span>(=) TOTAL NETO COMBINADO:</span><span id="corteTotalNeto"></span></div>
                 </div>
-
-                <div class="border-b border-dashed border-gray-300 my-3"></div>
-                <div class="text-[10px] font-bold uppercase text-gray-400 tracking-wide mb-1">Métricas de Asistencia Totales</div>
-                <div class="flex justify-between"><span>Total Registrados:</span><span id="corteAsistActivos" class="font-bold"></span></div>
-                <div class="flex justify-between"><span>Personas Inside:</span><span id="corteAsistInside" class="font-bold text-emerald-700"></span></div>
-                <div class="flex justify-between"><span>Total Promociones:</span><span id="corteTotalPromos" class="font-bold"></span></div>
             </div>
 
             <div class="border-b border-dashed border-gray-300 my-4"></div>
@@ -361,19 +385,21 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        const registrosRef = ref(db, 'asistencias');
-        const retirosRef = ref(db, 'retiros');
-        const usuariosRef = ref(db, 'usuarios');
-        const cajaRef = ref(db, 'caja_config/fondo_inicial');
+
+        let jornadaActivaId = null;       
+        let esModoHistorico = false;       
+        let jornadaVisualizadaId = null;  
+        let listenerRegistrosDestruir = null; 
+        let listenerRetirosDestruir = null;
+        let listenerCajaDestruir = null;
 
         let registros = [];
         let retiros = [];
         let fondoCajaInicial = 0; 
         
         let usuarioActivo = null;
-        let html5QrcodeScanner = null; // Instancia global de escaneo
-        let qrInstancia = null; // Instancia de generador QRjs
+        let html5QrcodeScanner = null; 
+        let qrInstancia = null; 
         const SESION_DURACION = 10 * 60 * 1000; 
 
         const sesionGuardada = localStorage.getItem('zaicheck_user');
@@ -390,7 +416,7 @@
 
         const PIN_MAESTRO_SEGURIDAD = "2026"; 
 
-        const PRECIOS_SOPORTE = { 
+        const PRECIOS_SOPORTE = {
             "FullPass": 200, "Promo": 150, "2x1": 200, "Preventa clases": 100, "Preventa social": 80, "Cortesía": 0,
             "Membresía nueva": 450, "Membresía renovación": 450, "Membresía canje": 225, "1 clase": 100, "2 clases": 150, "Miembro activo": 0
         };
@@ -404,7 +430,6 @@
             document.getElementById('seccionRegistro').classList.toggle('hidden', !mostrar);
         };
 
-        // LOGIN
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUser').value.trim().toLowerCase();
@@ -425,7 +450,6 @@
             }
         });
 
-        // CREACIÓN DE USUARIOS
         window.procesarRegistro = async () => {
             const pinMaestro = document.getElementById('regPinMaestro').value;
             const nuevoUser = document.getElementById('regUser').value.trim();
@@ -453,7 +477,7 @@
             }
         };
 
-        function concederAccesoApp() {
+        async function concederAccesoApp() {
             localStorage.setItem('zaicheck_user', usuarioActivo);
             localStorage.setItem('zaicheck_timestamp', Date.now());
 
@@ -462,28 +486,166 @@
             document.getElementById('contenidoApp').classList.remove('hidden');
             document.getElementById('loginForm').reset();
             
-            onValue(cajaRef, (snapshot) => {
+            await sincronizarEstructuraJornada();
+            inicializarEscuchaHistorialJornadas();
+        }
+
+        async function sincronizarEstructuraJornada() {
+            const metaJornadaRef = ref(db, 'jornada_metadata/activa');
+            const snapshot = await get(metaJornadaRef);
+            
+            if (snapshot.exists() && snapshot.val().id) {
+                jornadaActivaId = snapshot.val().id;
+            } else {
+                jornadaActivaId = 'jornada_' + Date.now();
+                await set(metaJornadaRef, { id: jornadaActivaId, abierta: true });
+            }
+
+            jornadaVisualizadaId = jornadaActivaId;
+            esModoHistorico = false;
+            
+            configurarListenersDeBase(jornadaVisualizadaId);
+        }
+
+        function configurarListenersDeBase(idJornada) {
+            if (listenerRegistrosDestruir) listenerRegistrosDestruir();
+            if (listenerRetirosDestruir) listenerRetirosDestruir();
+            if (listenerCajaDestruir) listenerCajaDestruir();
+
+            const txtIndicador = document.getElementById('txtJornadaActiva');
+            const colorIndicador = document.getElementById('indicadorJornadaColor');
+
+            if (esModoHistorico) {
+                txtIndicador.textContent = `Archivo Histórico (${idJornada.split('_')[1] || idJornada})`;
+                colorIndicador.className = "w-2 h-2 rounded-full bg-amber-500";
+                document.getElementById('bloqueoHistorialForm').classList.remove('hidden');
+                document.getElementById('bloqueoHistorialRetiro').classList.remove('hidden');
+                document.getElementById('btnEscanear').setAttribute('disabled', 'true');
+                document.getElementById('btnTerminarActividades').setAttribute('disabled', 'true');
+                document.getElementById('btnGuardarCaja').setAttribute('disabled', 'true');
+            } else {
+                txtIndicador.textContent = "🟢 En Curso / Activa";
+                colorIndicador.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                document.getElementById('bloqueoHistorialForm').classList.add('hidden');
+                document.getElementById('bloqueoHistorialRetiro').classList.add('hidden');
+                document.getElementById('btnEscanear').removeAttribute('disabled');
+                document.getElementById('btnTerminarActividades').removeAttribute('disabled');
+                document.getElementById('btnGuardarCaja').removeAttribute('disabled');
+            }
+
+            const regRef = ref(db, `jornadas/${idJornada}/asistencias`);
+            const retRef = ref(db, `jornadas/${idJornada}/retiros`);
+            const cjRef = ref(db, `jornadas/${idJornada}/caja_config/fondo_inicial`);
+
+            listenerCajaDestruir = onValue(cjRef, (snapshot) => {
                 fondoCajaInicial = snapshot.exists() ? parseFloat(snapshot.val()) : 0;
                 document.getElementById('cajaInicialInput').value = fondoCajaInicial;
                 renderAll();
             });
 
-            onValue(registrosRef, (snapshot) => {
+            listenerRegistrosDestruir = onValue(regRef, (snapshot) => {
                 registros = snapshot.val() ? Object.values(snapshot.val()).sort((a,b) => b.timestamp - a.timestamp) : [];
+                verificarYActualizarFechaMetaJornada(idJornada, registros);
                 renderAll();
             });
 
-            onValue(retirosRef, (snapshot) => {
+            listenerRetirosDestruir = onValue(retRef, (snapshot) => {
                 retiros = snapshot.val() ? Object.values(snapshot.val()).sort((a,b) => b.timestamp - a.timestamp) : [];
                 renderAll();
             });
         }
 
+        async function verificarYActualizarFechaMetaJornada(idJornada, listaDeAsistencias) {
+            if (listaDeAsistencias.length > 0) {
+                const primerRegistro = [...listaDeAsistencias].sort((a,b) => a.timestamp - b.timestamp)[0];
+                const etiquetaFecha = `${primerRegistro.fecha} ${primerRegistro.hora}`;
+                
+                await update(ref(db, `jornada_metadata/catalogo/${idJornada}`), {
+                    id: idJornada,
+                    fechaInicio: etiquetaFecha,
+                    primerAsistente: primerRegistro.nombre
+                });
+            }
+        }
+
+        function inicializarEscuchaHistorialJornadas() {
+            const catalogoRef = ref(db, 'jornada_metadata/catalogo');
+            onValue(catalogoRef, (snapshot) => {
+                const selector = document.getElementById('filtroJornadaHistorica');
+                selector.innerHTML = '<option value="ACTUAL">🟢 Jornada en Curso</option>';
+                
+                if (snapshot.exists()) {
+                    const listas = Object.values(snapshot.val());
+                    listas.forEach(jornadaMeta => {
+                        if (jornadaMeta.id !== jornadaActivaId) {
+                            const opt = document.createElement('option');
+                            opt.value = jornadaMeta.id;
+                            opt.textContent = `📅 Ini: ${jornadaMeta.fechaInicio} (${jornadaMeta.primerAsistente})`;
+                            selector.appendChild(opt);
+                        }
+                    });
+                }
+                selector.value = esModoHistorico ? jornadaVisualizadaId : "ACTUAL";
+            });
+        }
+
+        document.getElementById('filtroJornadaHistorica').addEventListener('change', (e) => {
+            const valorElegido = e.target.value;
+            if (valorElegido === "ACTUAL") {
+                esModoHistorico = false;
+                jornadaVisualizadaId = jornadaActivaId;
+            } else {
+                esModoHistorico = true;
+                jornadaVisualizadaId = valorElegido;
+            }
+            configurarListenersDeBase(jornadaVisualizadaId);
+        });
+
+        window.terminarActividadesJornada = async () => {
+            if (esModoHistorico) return;
+            
+            const mensajeConfirmar = `⚠️ ¿Estás seguro de TERMINAR LAS ACTIVIDADES de la jornada actual?\n\n` +
+                                     `Esto archivará de forma definitiva todos los accesos y retiros contables actuales, ` +
+                                     `dejando el sistema en blanco listo para el próximo día operativo.`;
+            
+            if (confirm(mensajeConfirmar)) {
+                try {
+                    if (registros.length > 0) {
+                        const primerRegistro = [...registros].sort((a,b) => a.timestamp - b.timestamp)[0];
+                        await set(ref(db, `jornada_metadata/catalogo/${jornadaActivaId}`), {
+                            id: jornadaActivaId,
+                            fechaInicio: `${primerRegistro.fecha} ${primerRegistro.hora}`,
+                            primerAsistente: primerRegistro.nombre
+                        });
+                    } else {
+                        const ahoraVacio = new Date();
+                        await set(ref(db, `jornada_metadata/catalogo/${jornadaActivaId}`), {
+                            id: jornadaActivaId,
+                            fechaInicio: `${ahoraVacio.toLocaleDateString('es-MX')} ${ahoraVacio.toLocaleTimeString('es-MX')}`,
+                            primerAsistente: "Sin registros"
+                        });
+                    }
+
+                    const nuevaJornadaId = 'jornada_' + Date.now();
+                    jornadaActivaId = nuevaJornadaId;
+                    jornadaVisualizadaId = nuevaJornadaId;
+                    esModoHistorico = false;
+
+                    await set(ref(db, 'jornada_metadata/activa'), { id: nuevaJornadaId, abierta: true });
+                    configurarListenersDeBase(jornadaActivaId);
+                    alert("🛑 Actividades Terminadas. Se ha inicializado un nuevo Día Operativo limpio.");
+                } catch (err) {
+                    alert("Error al procesar el cierre de actividades: " + err.message);
+                }
+            }
+        };
+
         window.actualizarFondoCaja = () => {
+            if (esModoHistorico) return;
             const mnt = parseFloat(document.getElementById('cajaInicialInput').value);
             if(isNaN(mnt) || mnt < 0) return alert("Ingresa un monto válido para el fondo de caja.");
             
-            set(cajaRef, mnt)
+            set(ref(db, `jornadas/${jornadaActivaId}/caja_config/fondo_inicial`), mnt)
                 .then(() => alert("✨ Fondo inicial de caja guardado con éxito."))
                 .catch(err => alert("Error al guardar: " + err.message));
         };
@@ -496,11 +658,13 @@
             document.getElementById('pantallaLogin').classList.remove('hidden');
         };
 
-        if (usuarioActivo) concederAccesoApp();
+        if (usuarioActivo) {
+            concederAccesoApp();
+        }
 
-        // ENTRADAS
         document.getElementById('registroForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            if (esModoHistorico) return;
             const id = crypto.randomUUID();
             const nombre = document.getElementById('nombre').value.trim();
             const modo = document.getElementById('modo').value;
@@ -508,7 +672,7 @@
             const precio = parseFloat(document.getElementById('precio').value);
             const ahora = new Date();
             
-            set(ref(db, 'asistencias/' + id), {
+            set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}`), {
                 id, nombre, modo, precio, tipoPago,
                 operador: usuarioActivo,
                 fecha: ahora.toLocaleDateString('es-MX'),
@@ -521,16 +685,16 @@
             document.getElementById('precio').value = PRECIOS_SOPORTE[document.getElementById('modo').value] || 0;
         });
 
-        // RETIROS
         document.getElementById('retiroForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            if (esModoHistorico) return;
             const id = crypto.randomUUID();
             const concepto = document.getElementById('retiroConcepto').value.trim();
             const monto = parseFloat(document.getElementById('retiroMonto').value);
             const tipoPago = document.getElementById('retiroTipoPago').value;
             const ahora = new Date();
 
-            set(ref(db, 'retiros/' + id), {
+            set(ref(db, `jornadas/${jornadaActivaId}/retiros/${id}`), {
                 id, concepto, monto, tipoPago,
                 operador: usuarioActivo,
                 fecha: ahora.toLocaleDateString('es-MX'),
@@ -540,7 +704,6 @@
             e.target.reset();
         });
 
-        // RENDERS Y CÁLCULOS
         function renderAll() {
             const busc = document.getElementById('buscador').value.toLowerCase();
             const mod = document.getElementById('filtroModo').value;
@@ -556,7 +719,8 @@
                 const d = document.createElement('div');
                 d.className = "flex justify-between items-center bg-gray-700/30 p-2 rounded text-[11px] border border-gray-700";
                 d.innerHTML = `<div><span class="text-amber-400 font-bold block truncate w-24">${ret.concepto}</span><span class="text-gray-500">${ret.hora} (${iconoPago}) • por: ${ret.operador || 'Sistema'}</span></div>
-                               <div class="flex items-center gap-2"><span class="text-red-400">-${fmt.format(ret.monto)}</span><button onclick="borrarRetiro('${ret.id}')" class="cursor-pointer">❌</button></div>`;
+                               <div class="flex items-center gap-2"><span class="text-red-400">-${fmt.format(ret.monto)}</span>
+                               <button onclick="borrarRetiro('${ret.id}')" ${esModoHistorico ? 'style="display:none;"' : ''} class="cursor-pointer">❌</button></div>`;
                 listaR.appendChild(d);
             });
 
@@ -568,7 +732,7 @@
             
             let balanceNetoFiltrado = dineroFiltrado;
             if (mod === 'TODOS' && busc === '') {
-                document.getElementById('labelDinero').textContent = "Caja Total Real";
+                document.getElementById('labelDinero').textContent = esModoHistorico ? "Caja Cierre Turno" : "Caja Total Real";
                 balanceNetoFiltrado = (fondoCajaInicial + dineroFiltrado - retirosTotales);
             } else {
                 document.getElementById('labelDinero').textContent = "Caja de Filtro";
@@ -606,8 +770,8 @@
                     <td class="py-3 px-4 text-gray-500 text-[11px]">${r.hora}</td>
                     <td class="py-3 px-3 text-indigo-200 text-xs">${quienAtendio}</td>
                     <td class="py-3 px-1 text-center"><button onclick="consultarTkt('${r.id}')" ${esDev ? 'disabled' : ''} class="cursor-pointer opacity-50 hover:opacity-100 disabled:hidden">🎫</button></td>
-                    <td class="py-3 px-1 text-center"><button onclick="hacerDevolucion('${r.id}', '${r.nombre}', ${r.precio})" ${esDev ? 'disabled' : ''} class="cursor-pointer grayscale hover:grayscale-0 disabled:hidden">↩️</button></td>
-                    <td class="py-3 px-1 text-center"><button onclick="toggleCheck('${r.id}', ${r.checked})" ${esDev ? 'disabled' : ''} class="px-2 py-1 rounded text-[10px] ${r.checked ? 'bg-emerald-900 text-emerald-300' : 'bg-gray-700'} disabled:hidden">${r.checked ? 'DENTRO' : 'CHECK'}</button></td>
+                    <td class="py-3 px-1 text-center"><button onclick="hacerDevolucion('${r.id}', '${r.nombre}', ${r.precio})" ${(esDev || esModoHistorico) ? 'disabled style="display:none;"' : ''} class="cursor-pointer grayscale hover:grayscale-0">↩️</button></td>
+                    <td class="py-3 px-1 text-center"><button onclick="toggleCheck('${r.id}', ${r.checked})" ${(esDev || esModoHistorico) ? 'disabled' : ''} class="px-2 py-1 rounded text-[10px] ${r.checked ? 'bg-emerald-900 text-emerald-300' : 'bg-gray-700'}">${r.checked ? 'DENTRO' : 'CHECK'}</button></td>
                 `;
                 tablaD.appendChild(tr);
 
@@ -625,26 +789,35 @@
                         <span class="font-bold ${esDev ? 'text-red-400' : ''}">${esDev ? '-' : ''}${fmt.format(Math.abs(r.precio))}</span>
                         <div class="flex gap-2">
                             ${!esDev ? `<button onclick="consultarTkt('${r.id}')" class="bg-gray-700 p-2 rounded">🎫</button>
-                             <button onclick="hacerDevolucion('${r.id}', '${r.nombre}', ${r.precio})" class="bg-gray-700 p-2 rounded">↩️</button>
-                             <button onclick="toggleCheck('${r.id}', ${r.checked})" class="px-3 py-1 rounded text-[10px] ${r.checked ? 'bg-emerald-900 text-emerald-300' : 'bg-indigo-600'}">${r.checked ? 'DENTRO' : 'CHECK'}</button>` : ''}
+                             <button onclick="hacerDevolucion('${r.id}', '${r.nombre}', ${r.precio})" ${esModoHistorico ? 'style="display:none;"' : ''} class="bg-gray-700 p-2 rounded">↩️</button>
+                             <button onclick="toggleCheck('${r.id}', ${r.checked})" ${esModoHistorico ? 'disabled' : ''} class="px-3 py-1 rounded text-[10px] ${r.checked ? 'bg-emerald-900 text-emerald-300' : 'bg-indigo-600'}">${r.checked ? 'DENTRO' : 'CHECK'}</button>` : ''}
                         </div>
                     </div>`;
                 listaM.appendChild(card);
             });
         }
 
-        window.borrarRetiro = (id) => confirm("¿Eliminar este retiro?") && remove(ref(db, 'retiros/' + id));
-        window.toggleCheck = (id, s) => set(ref(db, `asistencias/${id}/checked`), !s);
+        window.borrarRetiro = (id) => {
+            if (esModoHistorico) return;
+            confirm("¿Eliminar este retiro?") && remove(ref(db, `jornadas/${jornadaActivaId}/retiros/${id}`));
+        };
+
+        window.toggleCheck = (id, s) => {
+            if (esModoHistorico) return;
+            set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/checked`), !s);
+        };
+
         window.hacerDevolucion = (id, nom, pre) => {
+            if (esModoHistorico) return;
             if(confirm(`¿Confirmar devolución para ${nom}?`)) {
-                set(ref(db, `asistencias/${id}/modo`), 'Devolución');
-                set(ref(db, `asistencias/${id}/precio`), -Math.abs(pre));
-                set(ref(db, `asistencias/${id}/checked`), false);
-                set(ref(db, `asistencias/${id}/operador`), usuarioActivo);
+                set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/modo`), 'Devolución');
+                set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/precio`), -Math.abs(pre));
+                set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/checked`), false);
+                set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/operador`), usuarioActivo);
             }
         };
 
-        // GENERAR CORTE
+        // GENERAR CORTE (SIN INYECTAR MÉTRICAS DE ASISTENCIA)
         window.generarCorteCaja = () => {
             const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
             const ahora = new Date();
@@ -667,13 +840,24 @@
             document.getElementById('corteDevoluciones').innerHTML = `<div class="text-right text-red-700">💵 ${fmt.format(devEfe)}<br>📱 ${fmt.format(devTra)}</div>`;
             document.getElementById('corteRetiros').innerHTML = `<div class="text-right text-amber-700">💵 ${fmt.format(retEfe)}<br>📱 ${fmt.format(retTra)}</div>`;
             
-            document.getElementById('corteNetoEfectivo').textContent = fmt.format(netoEfe);
-            document.getElementById('corteNetoTransf').textContent = fmt.format(netoTra);
-            document.getElementById('corteTotalNeto').textContent = fmt.format(netoGlobal);
+            const contenedorDetalleRetiros = document.getElementById('corteDetalleRetirosLista');
+            contenedorDetalleRetiros.innerHTML = ''; 
+            
+            if (retiros.length > 0) {
+                retiros.forEach(ret => {
+                    const iconoPago = ret.tipoPago === 'Transferencia' ? '📱' : '💵';
+                    const fila = document.createElement('div');
+                    fila.className = "flex justify-between italic text-gray-500 font-mono text-[11px]";
+                    fila.innerHTML = `<span>• ${ret.concepto} (${ret.hora} ${iconoPago})</span><span>-${fmt.format(ret.monto)}</span>`;
+                    contenedorDetalleRetiros.appendChild(fila);
+                });
+            } else {
+                contenedorDetalleRetiros.innerHTML = '<div class="text-gray-400 italic text-[11px] font-mono">• Sin retiros registrados</div>';
+            }
 
-            document.getElementById('corteAsistActivos').textContent = registros.filter(r => r.modo !== 'Devolución').length;
-            document.getElementById('corteAsistInside').textContent = registros.filter(r => r.checked && r.modo !== 'Devolución').length;
-            document.getElementById('corteTotalPromos').textContent = registros.filter(r => r.modo === 'Promo' || r.modo === 'Membresía canje').length;
+            document.getElementById('corteNetoEfectivo').textContent = fmt.format(netoEfe);
+            document.getElementById('corteNetoTra').textContent = fmt.format(netoTra);
+            document.getElementById('corteTotalNeto').textContent = fmt.format(netoGlobal);
 
             document.getElementById('modalCorte').classList.remove('hidden');
         };
@@ -685,7 +869,6 @@
             if(r) consultarComprobanteDirecto(r.id, r.nombre, r.modo, r.precio, r.tipoPago || 'Efectivo', r.timestamp, r.operador);
         };
 
-        // INTEGRACIÓN DE GENERACIÓN DE QR EN EL TICKET
         function consultarComprobanteDirecto(id, nombre, modo, precio, tipoPago, time, operador) {
             const d = new Date(time);
             document.getElementById('compFolio').textContent = `#${id.split('-')[0].toUpperCase()}`;
@@ -698,13 +881,12 @@
             
             const contenedorQR = document.getElementById('contenedorQRComprobante');
             const divQR = document.getElementById('qrcode');
-            divQR.innerHTML = ""; // Limpiar códigos anteriores
+            divQR.innerHTML = ""; 
 
-            // Evaluar si solo es un modo con palabra clave "Membresía"
             if (modo.toLowerCase().includes('membresía')) {
                 contenedorQR.classList.remove('hidden');
                 qrInstancia = new QRCode(divQR, {
-                    text: id, // El QR guarda el ID único del asistente para leerlo en base de datos
+                    text: id, 
                     width: 128,
                     height: 128,
                     colorDark : "#000000",
@@ -723,55 +905,41 @@
         document.getElementById('buscador').addEventListener('input', renderAll);
         document.getElementById('filtroModo').addEventListener('change', renderAll);
 
-        // =========================================================================
-        // 🎛️ NUEVAS FUNCIONES PARA LECTURA DE QR Y CAMBIO DE ESTATUS AUTOMÁTICO
-        // =========================================================================
         window.abrirEscanerQR = () => {
+            if (esModoHistorico) return;
             document.getElementById('modalEscaner').classList.remove('hidden');
-            
-            // Instanciar el lector de cámara nativo si no existe
             if (!html5QrcodeScanner) {
                 html5QrcodeScanner = new Html5Qrcode("reader");
             }
             
             html5QrcodeScanner.start(
-                { facingMode: "environment" }, // Prioriza cámara trasera
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
-                },
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } },
                 onQrScanSuccess,
                 onQrScanFailure
             ).catch(err => {
                 console.error("No se pudo iniciar la cámara: ", err);
-                // Si falla al abrir, simplemente ocultamos el modal de forma segura
                 document.getElementById('modalEscaner').classList.add('hidden');
             });
         };
 
         window.cerrarEscanerQR = async () => {
-            // Primero ocultamos visualmente el modal para dar respuesta inmediata al usuario
             document.getElementById('modalEscaner').classList.add('hidden');
-            
-            // Apagamos la cámara de manera segura e independiente sin congelar el flujo principal
             if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
                 try {
                     await html5QrcodeScanner.stop();
                 } catch (err) {
-                    console.warn("La cámara ya estaba cerrada o hubo un retraso al detenerla:", err);
+                    console.warn("Retraso al detener la cámara:", err);
                 }
             }
         };
 
-        // Procesar lectura exitosa del QR
         async function onQrScanSuccess(decodedText) {
-            cerrarEscanerQR(); // Pausar cámara inmediatamente
-
+            cerrarEscanerQR(); 
             const uuidFiltrado = decodedText.trim();
             
             try {
-                // Consultar directamente en la base de datos de Firebase
-                const snapshot = await get(ref(db, `asistencias/${uuidFiltrado}`));
+                const snapshot = await get(ref(db, `jornadas/${jornadaActivaId}/asistencias/${uuidFiltrado}`));
                 
                 if (snapshot.exists()) {
                     const datosSocio = snapshot.val();
@@ -785,23 +953,18 @@
                         return;
                     }
 
-                    // Cambiar el estatus a ADENTRO (checked: true) en Firebase
-                    await update(ref(db, `asistencias/${uuidFiltrado}`), { checked: true });
-                    
-                    // Mostrar pantalla pase OK de bienvenida
+                    await update(ref(db, `jornadas/${jornadaActivaId}/asistencias/${uuidFiltrado}`), { checked: true });
                     desplegarPantallaPase(datosSocio.nombre, datosSocio.modo);
 
                 } else {
-                    alert("❌ Código QR no válido o no registrado en el sistema de Zaicheck.");
+                    alert("❌ Código QR no válido o no registrado en esta jornada de Zaicheck.");
                 }
             } catch (err) {
                 alert("Error al procesar el pase de la membresía: " + err.message);
             }
         }
 
-        function onQrScanFailure(error) {
-            // Manejo silencioso mientras busca el cuadro del QR por la pantalla
-        }
+        function onQrScanFailure(error) {}
 
         function desplegarPantallaPase(nombre, modo) {
             document.getElementById('paseNombre').textContent = nombre;
@@ -813,9 +976,6 @@
             document.getElementById('pantallaPaseOk').classList.add('hidden');
         };
 
-        // =========================================================================
-        // 📊 EXPORTAR EXCEL CON FORMATO UNIVERSAL
-        // =========================================================================
         window.exportarExcel = () => {
             if (registros.length === 0 && retiros.length === 0 && fondoCajaInicial === 0) {
                 return alert("No hay movimientos para exportar.");
@@ -832,6 +992,7 @@
             const netoTra = ingTra - devTra - retTra;
 
             let csvContent = "sep=;\n";
+            csvContent += `REPORTE DE JORNADA OPERATIVA: ${jornadaVisualizadaId.toUpperCase()}\n\n`;
 
             csvContent += "1. REGISTRO DE ENTRADAS Y ACCESOS\n";
             csvContent += "Nombre;Modo de Acceso;Forma de Pago;Precio ($);Fecha;Hora;Atendió;Estado Check-In\n";
@@ -866,20 +1027,19 @@
             const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `Reporte_Zaicheck_Universal_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = `Reporte_Zaicheck_${jornadaVisualizadaId}.csv`;
             link.click();
         };
 
-        // LIMPIEZA TOTAL
         window.limpiarRegistros = () => {
-            if(confirm("¿BORRAR TODO permanentemente? Se resetearán asistencias, retiros y fondo de caja.")) {
-                remove(registrosRef);
-                remove(retirosRef);
-                set(cajaRef, 0);
+            if(confirm("🚨 ATENCIÓN EXTRA: ¿Estás completamente seguro de BORRAR EL HISTORIAL GENERAL permanentemente?\n\nEsto eliminará todas las jornadas anteriores guardadas en el catálogo y reseteará la actual.")) {
+                remove(ref(db, 'jornadas'));
+                remove(ref(db, 'jornada_metadata'));
+                alert("Historial destruido con éxito. Reiniciando app.");
+                location.reload();
             }
         };
 
-        // TEMPORIZADORES DE INACTIVIDAD
         function actualizarActividad() {
             if (usuarioActivo) {
                 const tiempoUltimo = parseInt(localStorage.getItem('zaicheck_timestamp') || "0");
