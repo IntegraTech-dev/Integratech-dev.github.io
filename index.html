@@ -3,90 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BAILAMOS MEXICO ZAICHECK</title>
+    <title>BAILAMOS MEXICO ZAICHECK - PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         @media print {
             body * { visibility: hidden; }
-            #ticketImpresion, #ticketImpresion * { visibility: visible; }
-            #ticketImpresion { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
+            #ticketImpresion, #ticketImpresion *, #ticketCorte, #ticketCorte * { visibility: visible; }
+            #ticketImpresion, #ticketCorte { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
             .no-print { display: none !important; }
         }
+        #listaRetiros::-webkit-scrollbar { width: 4px; }
+        #listaRetiros::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen font-sans relative">
 
-    <div class="container mx-auto p-4 max-w-6xl">
-        <header class="text-center my-6">
-            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 tracking-wide">
-                BAILAMOS MEXICO ZAICHECK
-            </h1>
-            <p class="text-gray-400 text-sm mt-1">Control de accesos, retiros y reportes</p>
+    <div id="pantallaLogin" class="fixed inset-0 bg-gray-950 flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-2xl w-full max-w-sm">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 tracking-wide">ZAICHECK LOGIN</h2>
+                <p class="text-gray-400 text-xs mt-1">Ingresa tus credenciales autorizadas</p>
+            </div>
+
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Usuario</label>
+                    <input type="text" id="loginUser" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase mb-1">PIN (4 dígitos)</label>
+                    <input type="password" id="loginPin" required inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="••••" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-center text-xl tracking-widest text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg transition-colors shadow-md cursor-pointer">Entrar al Sistema</button>
+            </form>
+
+            <div class="border-t border-gray-800 my-4 pt-3 text-center">
+                <button onclick="conmutarVistaRegistro(true)" class="text-xs text-indigo-400 hover:underline cursor-pointer">✨ Crear una nueva cuenta</button>
+            </div>
+
+            <div id="seccionRegistro" class="hidden border-t border-gray-800 pt-4 space-y-4">
+                <p class="text-xs text-amber-400 font-bold uppercase tracking-wider text-center">Registrar Nuevo Operador</p>
+                <div>
+                    <label class="block text-[10px] font-medium text-gray-400 uppercase mb-1">PIN Maestro de Seguridad</label>
+                    <input type="password" id="regPinMaestro" placeholder="PIN de Administrador" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-medium text-gray-400 uppercase mb-1">Nuevo Usuario</label>
+                    <input type="text" id="regUser" placeholder="Nombre único" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-medium text-gray-400 uppercase mb-1">Asignar PIN (4 dígitos)</label>
+                    <input type="password" id="regPin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="••••" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-center text-sm tracking-widest text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="procesarRegistro()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer">Guardar Usuario</button>
+                    <button onclick="conmutarVistaRegistro(false)" class="bg-gray-800 text-gray-400 text-xs px-3 py-2 rounded-lg cursor-pointer">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contenidoApp" class="container mx-auto p-4 max-w-6xl hidden">
+        <header class="text-center my-6 flex flex-col sm:flex-row justify-between items-center bg-gray-800/40 p-4 rounded-xl border border-gray-800">
+            <div class="text-left">
+                <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 tracking-wide">
+                    BAILAMOS MEXICO ZAICHECK
+                </h1>
+                <p class="text-gray-400 text-xs mt-0.5">Control por Jornadas Operativas Flexibles</p>
+                <div class="mt-2 inline-flex items-center gap-2 bg-indigo-950/60 border border-indigo-800 px-2.5 py-1 rounded-lg text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="indicadorJornadaColor"></span>
+                    <span class="text-gray-300 font-medium">Jornada: </span>
+                    <span id="txtJornadaActiva" class="font-bold text-indigo-300">Cargando...</span>
+                </div>
+            </div>
+            
+            <div class="mt-3 sm:mt-0 flex flex-wrap gap-2 items-center">
+                <div class="bg-gray-900 border border-amber-950 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                    <div class="text-left">
+                        <label class="block text-[9px] uppercase font-bold text-amber-500">Fondo Caja Inicial</label>
+                        <div class="flex items-center text-xs font-bold text-amber-300">
+                            <span>$</span>
+                            <input type="number" id="cajaInicialInput" min="0" value="0" class="w-16 bg-transparent border-none text-amber-300 font-bold focus:outline-none p-0 ml-0.5">
+                        </div>
+                    </div>
+                    <button onclick="actualizarFondoCaja()" id="btnGuardarCaja" class="bg-amber-900/60 hover:bg-amber-800 text-amber-200 text-[10px] px-2 py-1 rounded font-bold cursor-pointer transition-colors">✔</button>
+                </div>
+
+                <div class="bg-gray-900 border border-gray-700 px-4 py-2 rounded-xl flex items-center gap-3">
+                    <div class="text-right">
+                        <p class="text-[10px] uppercase font-bold text-gray-500">Operador Activo</p>
+                        <p id="displayUsuario" class="text-sm font-bold text-indigo-300">Ninguno</p>
+                    </div>
+                    <button onclick="cerrarSesion()" class="bg-red-950 hover:bg-red-900 text-red-300 text-[10px] font-bold px-2 py-1 rounded border border-red-800 cursor-pointer">Salir</button>
+                </div>
+            </div>
         </header>
 
-        <div class="flex justify-end gap-3 mb-4">
-            <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
-                📊 Exportar a Excel
-            </button>
-            <button onclick="limpiarRegistros()" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-semibold px-4 py-2 rounded-lg border border-red-900/50 transition-colors cursor-pointer">
-                🗑️ Limpiar Todo
-            </button>
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-4 bg-gray-800/20 p-3 rounded-xl border border-gray-800/60">
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">📅 Historial:</label>
+                <select id="filtroJornadaHistorica" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-indigo-300 font-bold focus:outline-none focus:border-indigo-500">
+                    <option value="ACTUAL">🟢 Jornada en Curso</option>
+                </select>
+            </div>
+
+            <div class="flex flex-wrap gap-2 justify-end">
+                <button onclick="abrirEscanerQR()" id="btnEscanear" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
+                    📷 Escanear QR Membresía
+                </button>
+                <button onclick="generarCorteCaja()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
+                    🔒 Hacer Corte de Caja
+                </button>
+                <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
+                    📊 Exportar reporte Completo
+                </button>
+                <button onclick="terminarActividadesJornada()" id="btnTerminarActividades" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
+                    🛑 Terminar Actividades
+                </button>
+                <button onclick="limpiarRegistros()" id="btnLimpiarTodo" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-semibold px-4 py-2 rounded-lg border border-red-900/50 transition-colors cursor-pointer">
+                    🗑️ Limpiar Historial
+                </button>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
             <div class="space-y-6">
-                <div class="bg-gray-800 p-5 rounded-xl shadow-lg">
+                <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-700 relative overflow-hidden" id="contenedorFormRegistro">
+                    <div id="bloqueoHistorialForm" class="absolute inset-0 bg-gray-900/90 backdrop-blur-xs flex items-center justify-center text-center p-4 hidden z-20">
+                        <p class="text-xs text-amber-400 font-bold">⚠️ Modo Consulta Histórica.<br>No se pueden añadir registros aquí.</p>
+                    </div>
                     <h2 class="text-xl font-semibold mb-4 text-indigo-300 flex items-center gap-2">🎟️ Nuevo Registro</h2>
                     <form id="registroForm" class="space-y-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Nombre</label>
-                            <input type="text" id="nombre" required placeholder="Ej. Juan Carlos Velez" 
-                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="nombre" required placeholder="Nombre del asistente" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
                         </div>
-                        
-                        <div>
-                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Modo de Pago</label>
-                            <select id="modo" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-                                <option value="2x1">2x1</option>
-                                <option value="General">General</option>
-                                <option value="Promoción">Promoción</option>
-                                <option value="Cortesía">Cortesía</option>
-                            </select>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Modo de Acceso</label>
+                                <select id="modo" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-indigo-500">
+                                    <option value="FullPass">FullPass</option>
+                                    <option value="Penalización">Penalización</option>
+                                    <option value="Promo">Promo</option>
+                                    <option value="2x1">2x1</option>
+                                    <option value="Preventa clases">Preventa c/ clases</option>
+                                    <option value="Preventa social">Preventa sólo social</option>
+                                    <option value="Cortesía">Cortesía</option>
+                                    <option value="Membresía nueva">Membresía nueva</option>
+                                    <option value="Membresía renovación">Membresía renovación</option>
+                                    <option value="Membresía canje">Membresía 50% canje</option>
+                                    <option value="1 clase">1 clase</option>
+                                    <option value="2 clases">2 clases</option>
+                                    <option value="Miembro activo">Miembro activo</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Forma de Pago</label>
+                                <select id="tipoPago" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                    <option value="Efectivo">💵 Efectivo</option>
+                                    <option value="Transferencia">📱 Transf.</option>
+                                    <option value="No aplica">➖ No aplica</option>
+                                </select>
+                            </div>
                         </div>
-
                         <div>
                             <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Precio ($)</label>
-                            <input type="number" id="precio" required min="0" step="0.01" placeholder="0.00" 
-                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <input type="number" id="precio" required min="0" step="0.01" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
                         </div>
-
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg transition-colors shadow-md cursor-pointer">
-                            Registrar Entrada
-                        </button>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg transition-colors shadow-md cursor-pointer">Registrar Entrada</button>
                     </form>
                 </div>
 
-                <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-amber-900/30">
+                <div class="bg-gray-800 p-5 rounded-xl shadow-lg border border-amber-900/30 relative overflow-hidden" id="contenedorFormRetiro">
+                    <div id="bloqueoHistorialRetiro" class="absolute inset-0 bg-gray-900/90 backdrop-blur-xs flex items-center justify-center text-center p-4 hidden z-20">
+                        <p class="text-xs text-amber-400 font-bold">⚠️ Vista Histórica Bloqueada.</p>
+                    </div>
                     <h2 class="text-xl font-semibold mb-3 text-amber-400 flex items-center gap-2">💸 Retiro de Caja</h2>
                     <form id="retiroForm" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Concepto / Motivo</label>
-                            <input type="text" id="retiroConcepto" required placeholder="Ej. Pago DJ, Bebidas, etc." 
-                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                        <input type="text" id="retiroConcepto" required placeholder="Concepto (Ej. Pago DJ)" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="retiroMonto" required min="0.01" step="0.01" placeholder="Monto $" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white">
+                            <select id="retiroTipoPago" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white">
+                                <option value="Efectivo">💵 Efectivo</option>
+                                <option value="Transferencia">📱 Transf.</option>
+                            </select>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1">Monto a Retirar ($)</label>
-                            <input type="number" id="retiroMonto" required min="0.01" step="0.01" placeholder="0.00" 
-                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
-                        </div>
-                        <button type="submit" class="w-full bg-amber-700 hover:bg-amber-600 text-white font-medium py-1.5 rounded-lg text-xs transition-colors shadow-md cursor-pointer">
-                            Confirmar Retiro
-                        </button>
+                        <button type="submit" class="w-full bg-amber-700 hover:bg-amber-600 text-white font-medium py-1.5 rounded-lg text-xs transition-colors cursor-pointer">Confirmar Retiro</button>
                     </form>
-
                     <div class="mt-4 border-t border-gray-700 pt-3">
-                        <p class="text-[11px] uppercase font-bold text-gray-400 mb-2 tracking-wider">Historial de Salidas</p>
+                        <p class="text-[10px] uppercase font-bold text-gray-500 mb-2">Salidas Recientes</p>
                         <div id="listaRetiros" class="space-y-1.5 max-h-40 overflow-y-auto pr-1"></div>
                     </div>
                 </div>
@@ -95,32 +202,40 @@
             <div class="md:col-span-2 bg-gray-800 p-5 rounded-xl shadow-lg flex flex-col">
                 <div class="grid grid-cols-3 gap-4 mb-6">
                     <div class="bg-indigo-950/40 border border-indigo-800/60 p-3 rounded-xl text-center">
-                        <p class="text-[10px] text-indigo-300 uppercase font-semibold tracking-wider">Caja Neta</p>
+                        <p class="text-[10px] text-indigo-300 uppercase font-semibold" id="labelDinero">Caja Total Real</p>
                         <span id="totalDinero" class="text-xl font-bold text-indigo-400">$0.00</span>
                     </div>
                     <div class="bg-emerald-950/40 border border-emerald-800/60 p-3 rounded-xl text-center">
-                        <p class="text-[10px] text-emerald-300 uppercase font-semibold tracking-wider">Asistentes Inside</p>
+                        <p class="text-[10px] text-emerald-300 uppercase font-semibold">Inside Filtrados</p>
                         <span id="totalAsistentes" class="text-xl font-bold text-emerald-400">0</span>
                     </div>
                     <div class="bg-amber-950/40 border border-amber-800/60 p-3 rounded-xl text-center">
-                        <p class="text-[10px] text-amber-300 uppercase font-semibold tracking-wider">Promociones</p>
+                        <p class="text-[10px] text-amber-300 uppercase font-semibold">Promos Filtradas</p>
                         <span id="totalParciales" class="text-xl font-bold text-amber-400">0</span>
                     </div>
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-                    <h2 class="text-xl font-semibold text-indigo-300 w-full sm:w-auto">Lista de Asistentes</h2>
-                    <div class="flex gap-2 w-full sm:w-auto flex-grow justify-end">
-                        <select id="filtroModo" class="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer">
-                            <option value="TODOS">Todos los estados</option>
+                    <h2 class="text-xl font-semibold text-indigo-300">Lista de Asistentes</h2>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <select id="filtroModo" class="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white">
+                            <option value="TODOS">Todos los Accesos</option>
+                            <option value="FullPass">FullPass</option>
+                            <option value="Penalización">Penalización</option>
+                            <option value="Promo">Promo</option>
                             <option value="2x1">2x1</option>
-                            <option value="General">General</option>
-                            <option value="Promoción">Promoción</option>
+                            <option value="Preventa clases">Preventa c/ clases</option>
+                            <option value="Preventa social">Preventa sólo social</option>
                             <option value="Cortesía">Cortesía</option>
+                            <option value="Membresía nueva">Membresía nueva</option>
+                            <option value="Membresía renovación">Membresía renovación</option>
+                            <option value="Membresía canje">Membresía 50% canje</option>
+                            <option value="1 clase">1 clase</option>
+                            <option value="2 clases">2 clases</option>
+                            <option value="Miembro activo">Miembro activo</option>
                             <option value="Devolución">Devoluciones</option>
                         </select>
-                        <input type="text" id="buscador" placeholder="Buscar por nombre..." 
-                            class="w-full sm:w-48 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        <input type="text" id="buscador" placeholder="Buscar nombre..." class="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
                     </div>
                 </div>
 
@@ -128,74 +243,142 @@
                     <div class="hidden md:block overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase tracking-wider">
+                                <tr class="border-b border-gray-700 text-gray-400 text-[10px] uppercase tracking-widest">
                                     <th class="py-3 px-4">Nombre</th>
-                                    <th class="py-3 px-4">Modo / Estado</th>
-                                    <th class="py-3 px-4">Precio</th>
+                                    <th class="py-3 px-4">Acceso</th>
+                                    <th class="py-3 px-2">Pago</th>
+                                    <th class="py-3 px-4">Importe</th>
                                     <th class="py-3 px-4">Hora</th>
-                                    <th class="py-3 px-4 text-center">TKT</th>
-                                    <th class="py-3 px-4 text-center">Dev.</th>
-                                    <th class="py-3 px-4 text-center">Check</th>
+                                    <th class="py-3 px-3">Atendió</th>
+                                    <th class="py-3 px-1 text-center">TKT</th>
+                                    <th class="py-3 px-1 text-center">Dev.</th>
+                                    <th class="py-3 px-1 text-center">Check</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaRegistrosDesktop" class="divide-y divide-gray-700 text-sm"></tbody>
                         </table>
                     </div>
-
                     <div id="listaRegistrosMobile" class="block md:hidden space-y-3"></div>
-                    <div id="noData" class="text-center text-gray-500 py-8 hidden">No se encontraron registros.</div>
+                    <div id="noData" class="text-center text-gray-500 py-8 hidden">Sin registros.</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="modalComprobante" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 transition-all">
-        <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-sm w-full shadow-2xl border border-gray-200 text-center flex flex-col justify-between" id="ticketImpresion">
-            <div>
-                <div class="text-2xl font-black text-indigo-900 tracking-tight">BAILAMOS MEXICO</div>
-                <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mt-0.5">Zaicheck Accesos</div>
-                <div class="border-b border-dashed border-gray-300 my-4"></div>
-                
-                <p class="text-xs text-gray-400 font-mono">ID REGISTRO</p>
-                <p id="compFolio" class="text-xs font-mono font-bold text-gray-700 mb-4">#0000-0000</p>
-                
-                <div class="space-y-3 text-left">
+    <!-- MODAL VISTA COMPROBANTE TICKET -->
+    <div id="modalComprobante" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-sm w-full text-center flex flex-col" id="ticketImpresion">
+            <div class="text-2xl font-black text-indigo-900 tracking-tight">BAILAMOS MEXICO</div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Zaicheck Accesos</div>
+            <div class="border-b border-dashed border-gray-300 my-4"></div>
+            <p id="compFolio" class="text-xs font-mono font-bold text-gray-500 mb-4"></p>
+            <div class="space-y-3 text-left">
+                <div><span class="text-[10px] uppercase font-bold text-gray-400 block">Nombre</span><span id="compNombre" class="text-lg font-bold"></span></div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><span class="text-[10px] uppercase font-bold text-gray-400 block">Acceso</span><span id="compModo" class="text-xs font-bold text-indigo-700"></span></div>
+                    <div><span class="text-[10px] uppercase font-bold text-gray-400 block">Método</span><span id="compMetodo" class="text-xs font-bold text-gray-700"></span></div>
+                    <div><span class="text-[10px] uppercase font-bold text-gray-400 block">Pagado</span><span id="compPrecio" class="text-xs font-extrabold text-emerald-700"></span></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><span class="text-[10px] uppercase font-bold text-gray-400 block">Fecha/Hora</span><span id="compFechaHora" class="text-xs font-mono"></span></div>
+                    <div><span class="text-[10px] uppercase font-bold text-gray-400 block">Atendió</span><span id="compOperador" class="text-xs font-bold text-gray-800"></span></div>
+                </div>
+            </div>
+            
+            <div id="contenedorQRComprobante" class="flex justify-center my-4 hidden">
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="border-b border-dashed border-gray-300 my-4"></div>
+            <p class="text-[10px] italic">¡Bienvenido al evento!</p>
+            <div class="flex gap-2 mt-6 no-print">
+                <button onclick="window.print()" class="flex-1 bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-sm cursor-pointer">🖨️ Imprimir</button>
+                <button onclick="cerrarComprobante()" class="bg-gray-100 text-gray-700 font-bold px-4 py-2.5 rounded-xl text-sm cursor-pointer">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE LECTURA DE QR POR CÁMARA -->
+    <div id="modalEscaner" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl max-w-md w-full text-center">
+            <h3 class="text-lg font-bold text-indigo-400 mb-2">📷 Escanear Pase de Membresía</h3>
+            <p class="text-xs text-gray-400 mb-4">Coloca el código QR frente a la cámara</p>
+            <div class="overflow-hidden rounded-xl bg-black border border-gray-700 aspect-square w-full mb-4 relative">
+                <div id="reader" class="w-full h-full"></div>
+            </div>
+            <button onclick="cerrarEscanerQR()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold py-2.5 rounded-xl cursor-pointer">Cancelar Escaneo</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA COMPLETA DE CONFIRMACIÓN -->
+    <div id="pantallaPaseOk" class="fixed inset-0 bg-emerald-950/95 flex items-center justify-center p-4 hidden z-50 transition-all">
+        <div class="bg-white text-gray-900 p-8 rounded-3xl max-w-sm w-full text-center border-4 border-emerald-500 shadow-2xl">
+            <div class="text-6xl mb-3 animate-bounce">✅</div>
+            <h2 class="text-3xl font-black text-emerald-900 tracking-tight">PASE AUTORIZADO</h2>
+            <p class="text-xs uppercase font-bold text-emerald-600 tracking-widest mt-1">Socio Activo • Acceso Permitido</p>
+            <div class="border-b border-gray-200 my-5"></div>
+            <div class="space-y-4 text-left">
+                <div>
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Nombre del Titular</span>
+                    <span id="paseNombre" class="text-2xl font-extrabold text-gray-900"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wide">Nombre del Asistente</span>
-                        <span id="compNombre" class="text-lg font-bold text-gray-900 block leading-tight"></span>
+                        <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Membresía</span>
+                        <span id="paseModo" class="text-sm font-bold text-indigo-700"></span>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <div>
-                            <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wide">Tipo de Acceso</span>
-                            <span id="compModo" class="text-sm font-bold text-indigo-700"></span>
-                        </div>
-                        <div>
-                            <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wide">Monto Pagado</span>
-                            <span id="compPrecio" class="text-sm font-extrabold text-emerald-700"></span>
-                        </div>
-                    </div>
-                    <div class="pt-1">
-                        <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wide">Fecha y Hora de Entrada</span>
-                        <span id="compFechaHora" class="text-xs font-mono font-medium text-gray-600 block"></span>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Estatus Final</span>
+                        <span class="inline-block bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-black">ADENTRO</span>
                     </div>
                 </div>
-                <div class="border-b border-dashed border-gray-300 my-4"></div>
-                <p class="text-xs font-medium text-gray-500 italic">¡Registro Exitoso! Bienvenido al evento.</p>
             </div>
-            <div class="flex gap-2 mt-6 no-print">
-                <button onclick="window.print()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-md cursor-pointer text-sm">
-                    🖨️ Imprimir
-                </button>
-                <button onclick="cerrarComprobante()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer text-sm">
-                    Cerrar
-                </button>
+            <div class="border-b border-gray-200 my-5"></div>
+            <button onclick="cerrarPantallaPase()" class="w-full bg-emerald-800 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm shadow-md cursor-pointer">Aceptar / Continuar</button>
+        </div>
+    </div>
+
+    <!-- MODAL CORTE DE CAJA (SIN MÉTRICAS DE ASISTENCIA) -->
+    <div id="modalCorte" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-md w-full text-center flex flex-col" id="ticketCorte">
+            <div class="text-2xl font-black text-gray-900 tracking-tight">CORTE DE CAJA</div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">BAILAMOS MEXICO OFFICIAL</div>
+            <div class="border-b border-dashed border-gray-300 my-3"></div>
+            
+            <p id="corteFechaHora" class="text-xs font-mono text-gray-600 mb-4"></p>
+            
+            <div class="space-y-2 text-left text-xs font-mono">
+                <div class="flex justify-between font-bold text-gray-700 border-b border-gray-200 pb-1"><span>CONCEPTO</span><span>EFECTIVO / TRANSF.</span></div>
+                <div class="flex justify-between text-amber-600 font-bold"><span>(+) FONDO INICIAL DE CAJA:</span><span id="corteFondoInicial"></span></div>
+                <div class="flex justify-between"><span>(+) INGRESOS BRUTOS:</span><span id="corteIngresos"></span></div>
+                <div class="flex justify-between"><span>(-) DEVOLUCIONES:</span><span id="corteDevoluciones"></span></div>
+                <div class="flex justify-between"><span>(-) RETIROS / GASTOS:</span><span id="corteRetiros"></span></div>
+                
+                <div id="corteDetalleRetirosLista" class="text-[10px] text-gray-500 pl-4 border-l border-gray-300 my-1 space-y-0.5"></div>
+                
+                <div class="border-b border-gray-300 my-2"></div>
+                
+                <div class="bg-gray-100 p-2 rounded space-y-1 font-bold text-sm">
+                    <div class="flex justify-between text-emerald-800"><span>(=) NETO EFECTIVO (EN CAJA):</span><span id="corteNetoEfectivo"></span></div>
+                    <div class="flex justify-between text-blue-800"><span>(=) NETO TRANSFERENCIAS:</span><span id="corteNetoTra"></span></div>
+                    <div class="border-t border-gray-300 my-1"></div>
+                    <div class="flex justify-between text-indigo-900 text-base"><span>(=) TOTAL NETO COMBINADO:</span><span id="corteTotalNeto"></span></div>
+                </div>
+            </div>
+
+            <div class="border-b border-dashed border-gray-300 my-4"></div>
+            <p class="text-[10px] text-gray-400 italic font-mono">Zaicheck Financial Report</p>
+            
+            <div class="flex gap-2 mt-5 no-print">
+                <button onclick="window.print()" class="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-xl text-xs cursor-pointer">🖨️ Imprimir Corte</button>
+                <button onclick="cerrarCorte()" class="bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl text-xs cursor-pointer">Cerrar</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyArbpF-EDdH_0GVCd5P-Updv5r9jzOt3Vw",
@@ -204,338 +387,698 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        const registrosRef = ref(db, 'asistencias');
-        const retirosRef = ref(db, 'retiros');
+
+        let jornadaActivaId = null;       
+        let esModoHistorico = false;       
+        let jornadaVisualizadaId = null;  
+        let listenerRegistrosDestruir = null; 
+        let listenerRetirosDestruir = null;
+        let listenerCajaDestruir = null;
 
         let registros = [];
         let retiros = [];
-
-        const PRECIOS_PREDEFINIDOS = { "2x1": 150, "General": 200, "Promoción": 100, "Cortesía": 0 };
-
-        const form = document.getElementById('registroForm');
-        const formRetiro = document.getElementById('retiroForm');
-        const selectModo = document.getElementById('modo');
-        const inputPrecio = document.getElementById('precio');
+        let fondoCajaInicial = 0; 
         
-        const tablaDesktop = document.getElementById('tablaRegistrosDesktop');
-        const listaMobile = document.getElementById('listaRegistrosMobile');
-        const listaRetirosEl = document.getElementById('listaRetiros');
-        
-        const buscador = document.getElementById('buscador');
-        const filtroModo = document.getElementById('filtroModo');
-        const noData = document.getElementById('noData');
-        
-        const totalDineroEl = document.getElementById('totalDinero');
-        const totalAsistentesEl = document.getElementById('totalAsistentes');
-        const totalParcialesEl = document.getElementById('totalParciales');
+        let usuarioActivo = null;
+        let html5QrcodeScanner = null; 
+        let qrInstancia = null; 
+        const SESION_DURACION = 10 * 60 * 1000; 
 
-        const modalComprobante = document.getElementById('modalComprobante');
-        const compFolio = document.getElementById('compFolio');
-        const compNombre = document.getElementById('compNombre');
-        const compModo = document.getElementById('compModo');
-        const compPrecio = document.getElementById('compPrecio');
-        const compFechaHora = document.getElementById('compFechaHora');
+        const sesionGuardada = localStorage.getItem('zaicheck_user');
+        const ultimaActividad = localStorage.getItem('zaicheck_timestamp');
+        const ahoraInit = Date.now();
 
-        const actualizarPrecioSugerido = () => {
-            const modoSeleccionado = selectModo.value;
-            if (modoSeleccionado in PRECIOS_PREDEFINIDOS) {
-                inputPrecio.value = PRECIOS_PREDEFINIDOS[modoSeleccionado];
-            } else {
-                inputPrecio.value = '';
-                inputPrecio.placeholder = "0.00";
-            }
+        if (sesionGuardada && ultimaActividad && (ahoraInit - ultimaActividad < SESION_DURACION)) {
+            usuarioActivo = sesionGuardada;
+            localStorage.setItem('zaicheck_timestamp', ahoraInit); 
+        } else {
+            localStorage.removeItem('zaicheck_user');
+            localStorage.removeItem('zaicheck_timestamp');
+        }
+
+        const PIN_MAESTRO_SEGURIDAD = "2026"; 
+
+        const PRECIOS_SOPORTE = {
+            "FullPass": 200, "Penalización": 150, "Promo": 150, "2x1": 200, "Preventa clases": 100, "Preventa social": 80, "Cortesía": 0,
+            "Membresía nueva": 450, "Membresía renovación": 450, "Membresía canje": 225, "1 clase": 100, "2 clases": 150, "Miembro activo": 0
         };
 
-        selectModo.addEventListener('change', actualizarPrecioSugerido);
-        actualizarPrecioSugerido();
-
-        const actualizarTotales = () => {
-            const ingresosNetos = registros.reduce((sum, reg) => sum + reg.precio, 0);
-            const retirosTotales = retiros.reduce((sum, ret) => sum + ret.monto, 0);
-            const cajaNeta = ingresosNetos - retirosTotales;
-
-            const adentro = registros.filter(reg => reg.checked && reg.modo !== 'Devolución' && !reg.devuelto).length;
-            const activos = registros.filter(reg => reg.modo !== 'Devolución' && !reg.devuelto).length;
-            const parciales = registros.filter(reg => reg.modo === "Promoción" && !reg.devuelto).length;
-            
-            const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-
-            totalDineroEl.textContent = formatoMoneda.format(cajaNeta);
-            totalAsistentesEl.textContent = `${adentro} / ${activos}`;
-            totalParcialesEl.textContent = parciales;
-        };
-
-        const renderRetiros = () => {
-            listaRetirosEl.innerHTML = '';
-            const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-            
-            if(retiros.length === 0) {
-                listaRetirosEl.innerHTML = '<p class="text-[11px] text-gray-500 italic">No hay retiros hechos.</p>';
-                return;
-            }
-
-            retiros.forEach(ret => {
-                const div = document.createElement('div');
-                div.className = "flex justify-between items-center bg-gray-700/40 px-2 py-1 rounded text-xs border border-gray-700";
-                div.innerHTML = `
-                    <div class="truncate max-w-[120px]">
-                        <span class="font-medium text-amber-400 block truncate" title="${ret.concepto}">${ret.concepto}</span>
-                        <span class="text-[9px] text-gray-400 font-mono">${ret.hora}</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        <span class="font-bold text-red-400">-${formatoMoneda.format(ret.monto)}</span>
-                        <button onclick="window.eliminarRetiro('${ret.id}')" class="text-gray-500 hover:text-red-400 cursor-pointer text-[10px]">❌</button>
-                    </div>
-                `;
-                listaRetirosEl.appendChild(div);
-            });
-        };
-
-        const renderVistas = () => {
-            tablaDesktop.innerHTML = '';
-            listaMobile.innerHTML = '';
-            
-            const textoFiltro = buscador.value.toLowerCase();
-            const modoFiltro = filtroModo.value;
-
-            const registrosFiltrados = registros.filter(reg => {
-                const cumpleNombre = reg.nombre.toLowerCase().includes(textoFiltro);
-                const cumpleModo = (modoFiltro === 'TODOS') || (reg.modo === modoFiltro);
-                return cumpleNombre && cumpleModo;
-            });
-
-            if (registrosFiltrados.length === 0) { noData.classList.remove('hidden'); } 
-            else { noData.classList.add('hidden'); }
-
-            registrosFiltrados.forEach(reg => {
-                const esNegativo = reg.precio < 0;
-                const precioAbsoluto = Math.abs(reg.precio);
-                const precioFormateated = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(precioAbsoluto);
-                const fechaMostrar = reg.fecha ? `${reg.fecha} - ` : '';
-
-                let modoBadgeColor = 'bg-indigo-900/40 text-indigo-300 border-indigo-700/50';
-                if (reg.modo === 'Promoción') modoBadgeColor = 'bg-amber-900/40 text-amber-300 border-amber-700/50';
-                else if (reg.modo === 'Cortesía') modoBadgeColor = 'bg-purple-900/40 text-purple-300 border-purple-700/50';
-                else if (reg.modo === 'General') modoBadgeColor = 'bg-emerald-900/40 text-emerald-300 border-emerald-700/50';
-                else if (reg.modo === 'Devolución') modoBadgeColor = 'bg-red-950 text-red-400 border-red-800';
-
-                const esDevolucion = reg.modo === 'Devolución';
-                const estaBloqueado = reg.devuelto || esDevolucion;
-
-                // DESKTOP VISTA
-                const tr = document.createElement('tr');
-                tr.className = `hover:bg-gray-700/30 transition-colors ${reg.checked ? 'opacity-60 bg-gray-800/40' : ''} ${estaBloqueado ? 'bg-red-950/5 text-gray-400' : ''}`;
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-medium ${reg.checked || reg.devuelto ? 'line-through text-gray-500' : 'text-white'}">${reg.nombre}</td>
-                    <td class="py-3 px-4">
-                        <span class="px-2 py-0.5 rounded text-xs border ${modoBadgeColor}">
-                            ${esDevolucion ? `↩️ Dev: ${reg.modoOriginal || 'Boleto'}` : reg.modo}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4 font-medium ${esNegativo || reg.devuelto ? 'text-red-400/80' : 'text-gray-300'}">
-                        ${esNegativo ? '-' : ''}${precioFormateated} ${reg.devuelto ? '(Devuelto)' : ''}
-                    </td>
-                    <td class="py-3 px-4 text-gray-400 font-mono text-xs">${reg.hora}</td>
-                    <td class="py-3 px-4 text-center">
-                        <button onclick="window.consultarComprobantePorId('${reg.id}')" ${estaBloqueado ? 'disabled' : ''}
-                            class="cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs px-2.5 py-1 rounded-lg border border-gray-600 transition-all">
-                            🎫
-                        </button>
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <button onclick="window.marcarDevolucion('${reg.id}', '${reg.nombre}', ${reg.precio}, '${reg.modo}')" ${estaBloqueado ? 'disabled' : ''}
-                            class="cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed bg-gray-700/40 hover:bg-red-950 hover:text-red-400 text-gray-400 text-xs px-2 py-1 rounded-lg border border-gray-600/40 transition-all" title="Aplicar Devolución">
-                            ↩️
-                        </button>
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <button onclick="window.toggleCheck('${reg.id}', ${reg.checked})" ${estaBloqueado ? 'disabled' : ''}
-                            class="cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed text-xs font-semibold px-3 py-1 rounded-full transition-all 
-                            ${reg.checked ? 'bg-emerald-950 text-emerald-400 border border-emerald-600/50' : 'bg-gray-700 hover:bg-indigo-600 text-gray-200 hover:text-white'}">
-                            ${reg.checked ? '✓ Adentro' : 'Hacer Check'}
-                        </button>
-                    </td>
-                `;
-                tablaDesktop.appendChild(tr);
-
-                // MOBILE VISTA
-                const tarjeta = document.createElement('div');
-                tarjeta.className = `p-4 rounded-xl border transition-all flex flex-col gap-2 ${reg.checked ? 'bg-gray-800/30 border-gray-800 opacity-60' : 'bg-gray-750 border-gray-700 shadow-sm'} ${estaBloqueado ? 'bg-red-950/10 border-red-900/20' : ''}`;
-                tarjeta.innerHTML = `
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="min-w-0 flex-grow">
-                            <p class="font-semibold text-base truncate ${reg.checked || reg.devuelto ? 'line-through text-gray-500' : 'text-white'}">${reg.nombre}</p>
-                            <p class="text-[11px] text-gray-400 font-mono mt-0.5">${fechaMostrar}${reg.hora}</p>
-                        </div>
-                        <span class="px-2 py-0.5 rounded text-[11px] font-medium border shrink-0 ${modoBadgeColor}">
-                            ${esDevolucion ? `↩️ Dev: ${reg.modoOriginal || 'Boleto'}` : reg.modo}
-                        </span>
-                    </div>
-                    <div class="flex justify-between items-center mt-1 pt-2 border-t border-gray-700/50 gap-2">
-                        <div class="flex items-center gap-2">
-                            <div>
-                                <span class="text-xs text-gray-400 block uppercase tracking-wider text-[10px]">Importe</span>
-                                <span class="font-bold ${esNegativo || reg.devuelto ? 'text-red-400' : 'text-gray-200'}">
-                                    ${esNegativo ? '-' : ''}${precioFormateated} ${reg.devuelto ? '(Devuelto)' : ''}
-                                </span>
-                            </div>
-                            <button onclick="window.consultarComprobantePorId('${reg.id}')" ${estaBloqueado ? 'hidden' : ''}
-                                class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-gray-300 text-[11px] p-1.5 rounded-lg border border-gray-600 transition-all mt-1">
-                                🎫 TKT
-                            </button>
-                            <button onclick="window.marcarDevolucion('${reg.id}', '${reg.nombre}', ${reg.precio}, '${reg.modo}')" ${estaBloqueado ? 'hidden' : ''}
-                                class="cursor-pointer bg-gray-700/40 hover:bg-red-950 text-red-400 text-[11px] p-1.5 rounded-lg border border-gray-600/40 mt-1" title="Devolución">
-                                ↩️ Dev.
-                            </button>
-                        </div>
-                        <button onclick="window.toggleCheck('${reg.id}', ${reg.checked})" ${estaBloqueado ? 'hidden' : ''}
-                            class="cursor-pointer text-xs font-bold px-4 py-2 rounded-lg transition-all shadow-sm ${reg.checked ? 'bg-emerald-950 text-emerald-400 border border-emerald-600/40 w-28 text-center' : 'bg-indigo-600 hover:bg-indigo-500 text-white w-28 text-center'}">
-                            ${reg.checked ? '✓ Adentro' : 'Hacer Check'}
-                        </button>
-                    </div>
-                `;
-                listaMobile.appendChild(tarjeta);
-            });
-
-            actualizarTotales();
-        };
-
-        onValue(registrosRef, (snapshot) => {
-            const data = snapshot.val();
-            registros = data ? Object.values(data).sort((a,b) => b.timestamp - a.timestamp) : [];
-            renderVistas();
+        document.getElementById('modo').addEventListener('change', (e) => {
+            document.getElementById('precio').value = PRECIOS_SOPORTE[e.target.value] || 0;
         });
+        document.getElementById('precio').value = PRECIOS_SOPORTE[document.getElementById('modo').value] || 0; 
 
-        onValue(retirosRef, (snapshot) => {
-            const data = snapshot.val();
-            retiros = data ? Object.values(data).sort((a,b) => b.timestamp - a.timestamp) : [];
-            renderRetiros();
-            actualizarTotales();
-        });
+        window.conmutarVistaRegistro = (mostrar) => {
+            document.getElementById('seccionRegistro').classList.toggle('hidden', !mostrar);
+        };
 
-        formRetiro.addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = crypto.randomUUID();
-            const concepto = document.getElementById('retiroConcepto').value.trim();
-            const monto = parseFloat(document.getElementById('retiroMonto').value) || 0;
-            const ahora = new Date();
-            const hora = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+            const username = document.getElementById('loginUser').value.trim().toLowerCase();
+            const pin = document.getElementById('loginPin').value;
 
-            if(monto <= 0) return;
+            if(!username || pin.length !== 4) return alert("Por favor completa los datos correctamente.");
 
-            set(ref(db, 'retiros/' + id), { id, concepto, monto, hora, timestamp: ahora.getTime() });
-            formRetiro.reset();
+            try {
+                const snapshot = await get(ref(db, `usuarios/${username}`));
+                if(snapshot.exists() && snapshot.val().pin === pin) {
+                    usuarioActivo = snapshot.val().nombreOriginal;
+                    concederAccesoApp();
+                } else {
+                    alert("Usuario o PIN incorrectos. Verifica tus datos.");
+                }
+            } catch (err) {
+                alert("Error al validar credenciales: " + err.message);
+            }
         });
 
-        window.marcarDevolucion = (id, nombre, precioOriginal, modoAnterior) => {
-            if(confirm(`¿Estás seguro de devolver la entrada de "${nombre}"?\nSe generará un contra-registro por -$${precioOriginal}.`)) {
-                
-                const idDevolucion = crypto.randomUUID();
-                const ahora = new Date();
-                
-                set(ref(db, `asistencias/${id}/devuelto`), true);
-                set(ref(db, `asistencias/${id}/checked`), false);
+        window.procesarRegistro = async () => {
+            const pinMaestro = document.getElementById('regPinMaestro').value;
+            const nuevoUser = document.getElementById('regUser').value.trim();
+            const nuevoPin = document.getElementById('regPin').value;
 
-                set(ref(db, `asistencias/${idDevolucion}`), {
-                    id: idDevolucion,
-                    nombre: nombre,
-                    modo: 'Devolución',
-                    modoOriginal: modoAnterior,
-                    precio: -precioOriginal,
-                    fecha: ahora.toLocaleDateString('es-MX'),
-                    hora: ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
-                    checked: false,
-                    timestamp: ahora.getTime() + 1
+            if (pinMaestro !== PIN_MAESTRO_SEGURIDAD) return alert("El PIN Maestro de seguridad es inválido.");
+            if (!nuevoUser || nuevoPin.length !== 4 || isNaN(nuevoPin)) return alert("Datos obligatorios.");
+
+            const nodoUser = nuevoUser.toLowerCase();
+
+            try {
+                const snapshot = await get(ref(db, `usuarios/${nodoUser}`));
+                if (snapshot.exists()) return alert("Este nombre de usuario ya existe.");
+
+                await set(ref(db, `usuarios/${nodoUser}`), {
+                    username: nodoUser, nombreOriginal: nuevoUser, pin: nuevoPin
+                });
+
+                alert(`¡Usuario '${nuevoUser}' creado con éxito!`);
+                document.getElementById('regUser').value = '';
+                document.getElementById('regPin').value = '';
+                conmutarVistaRegistro(false);
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        };
+
+        async function concederAccesoApp() {
+            localStorage.setItem('zaicheck_user', usuarioActivo);
+            localStorage.setItem('zaicheck_timestamp', Date.now());
+
+            document.getElementById('displayUsuario').textContent = usuarioActivo;
+            document.getElementById('pantallaLogin').classList.add('hidden');
+            document.getElementById('contenidoApp').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+            
+            await sincronizarEstructuraJornada();
+            inicializarEscuchaHistorialJornadas();
+        }
+
+        async function sincronizarEstructuraJornada() {
+            const metaJornadaRef = ref(db, 'jornada_metadata/activa');
+            const snapshot = await get(metaJornadaRef);
+            
+            if (snapshot.exists() && snapshot.val().id) {
+                jornadaActivaId = snapshot.val().id;
+            } else {
+                jornadaActivaId = 'jornada_' + Date.now();
+                await set(metaJornadaRef, { id: jornadaActivaId, abierta: true });
+            }
+
+            jornadaVisualizadaId = jornadaActivaId;
+            esModoHistorico = false;
+            
+            configurarListenersDeBase(jornadaVisualizadaId);
+        }
+
+        function configurarListenersDeBase(idJornada) {
+            if (listenerRegistrosDestruir) listenerRegistrosDestruir();
+            if (listenerRetirosDestruir) listenerRetirosDestruir();
+            if (listenerCajaDestruir) listenerCajaDestruir();
+
+            const txtIndicador = document.getElementById('txtJornadaActiva');
+            const colorIndicador = document.getElementById('indicadorJornadaColor');
+
+            if (esModoHistorico) {
+                txtIndicador.textContent = `Archivo Histórico (${idJornada.split('_')[1] || idJornada})`;
+                colorIndicador.className = "w-2 h-2 rounded-full bg-amber-500";
+                document.getElementById('bloqueoHistorialForm').classList.remove('hidden');
+                document.getElementById('bloqueoHistorialRetiro').classList.remove('hidden');
+                document.getElementById('btnEscanear').setAttribute('disabled', 'true');
+                document.getElementById('btnTerminarActividades').setAttribute('disabled', 'true');
+                document.getElementById('btnGuardarCaja').setAttribute('disabled', 'true');
+            } else {
+                txtIndicador.textContent = "🟢 En Curso / Activa";
+                colorIndicador.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                document.getElementById('bloqueoHistorialForm').classList.add('hidden');
+                document.getElementById('bloqueoHistorialRetiro').classList.add('hidden');
+                document.getElementById('btnEscanear').removeAttribute('disabled');
+                document.getElementById('btnTerminarActividades').removeAttribute('disabled');
+                document.getElementById('btnGuardarCaja').removeAttribute('disabled');
+            }
+
+            const regRef = ref(db, `jornadas/${idJornada}/asistencias`);
+            const retRef = ref(db, `jornadas/${idJornada}/retiros`);
+            const cjRef = ref(db, `jornadas/${idJornada}/caja_config/fondo_inicial`);
+
+            listenerCajaDestruir = onValue(cjRef, (snapshot) => {
+                fondoCajaInicial = snapshot.exists() ? parseFloat(snapshot.val()) : 0;
+                document.getElementById('cajaInicialInput').value = fondoCajaInicial;
+                renderAll();
+            });
+
+            listenerRegistrosDestruir = onValue(regRef, (snapshot) => {
+                registros = snapshot.val() ? Object.values(snapshot.val()).sort((a,b) => b.timestamp - a.timestamp) : [];
+                verificarYActualizarFechaMetaJornada(idJornada, registros);
+                renderAll();
+            });
+
+            listenerRetirosDestruir = onValue(retRef, (snapshot) => {
+                retiros = snapshot.val() ? Object.values(snapshot.val()).sort((a,b) => b.timestamp - a.timestamp) : [];
+                renderAll();
+            });
+        }
+
+        async function verificarYActualizarFechaMetaJornada(idJornada, listaDeAsistencias) {
+            if (listaDeAsistencias.length > 0) {
+                const primerRegistro = [...listaDeAsistencias].sort((a,b) => a.timestamp - b.timestamp)[0];
+                const etiquetaFecha = `${primerRegistro.fecha} ${primerRegistro.hora}`;
+                
+                await update(ref(db, `jornada_metadata/catalogo/${idJornada}`), {
+                    id: idJornada,
+                    fechaInicio: etiquetaFecha,
+                    primerAsistente: primerRegistro.nombre
                 });
             }
-        };
+        }
 
-        window.eliminarRetiro = (id) => {
-            if(confirm("¿Eliminar este retiro de caja? El dinero regresará al total.")) {
-                remove(ref(db, 'retiros/' + id));
+        function inicializarEscuchaHistorialJornadas() {
+            const catalogoRef = ref(db, 'jornada_metadata/catalogo');
+            onValue(catalogoRef, (snapshot) => {
+                const selector = document.getElementById('filtroJornadaHistorica');
+                selector.innerHTML = '<option value="ACTUAL">🟢 Jornada en Curso</option>';
+                
+                if (snapshot.exists()) {
+                    const listas = Object.values(snapshot.val());
+                    listas.forEach(jornadaMeta => {
+                        if (jornadaMeta.id !== jornadaActivaId) {
+                            const opt = document.createElement('option');
+                            opt.value = jornadaMeta.id;
+                            opt.textContent = `📅 Ini: ${jornadaMeta.fechaInicio} (${jornadaMeta.primerAsistente})`;
+                            selector.appendChild(opt);
+                        }
+                    });
+                }
+                selector.value = esModoHistorico ? jornadaVisualizadaId : "ACTUAL";
+            });
+        }
+
+        document.getElementById('filtroJornadaHistorica').addEventListener('change', (e) => {
+            const valorElegido = e.target.value;
+            if (valorElegido === "ACTUAL") {
+                esModoHistorico = false;
+                jornadaVisualizadaId = jornadaActivaId;
+            } else {
+                esModoHistorico = true;
+                jornadaVisualizadaId = valorElegido;
             }
-        };
-
-        const mostrarComprobante = (id, nombre, modo, precio, fecha, hora) => {
-            const precioFormateated = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(precio);
-            compFolio.textContent = `#${id.substring(0,8).toUpperCase()}`;
-            compNombre.textContent = nombre;
-            compModo.textContent = modo;
-            compPrecio.textContent = precioFormateated;
-            compFechaHora.textContent = `${fecha} - ${hora}`;
-            modalComprobante.classList.remove('hidden');
-        };
-
-        window.consultarComprobantePorId = (id) => {
-            const r = registros.find(reg => reg.id === id);
-            if (r) mostrarComprobante(r.id, r.nombre, r.modo, r.precio, r.fecha || "", r.hora);
-        };
-
-        window.cerrarComprobante = () => { modalComprobante.classList.add('hidden'); };
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nombreInput = document.getElementById('nombre').value.trim();
-            
-            const nombreDuplicado = registros.some(reg => 
-                reg.modo !== 'Devolución' && !reg.devuelto &&
-                reg.nombre.toLowerCase().replace(/\s+/g, ' ') === nombreInput.toLowerCase().replace(/\s+/g, ' ')
-            );
-
-            if (nombreDuplicado) {
-                alert(`⚠️ El asistente "${nombreInput}" ya está registrado en la lista activa.`);
-                document.getElementById('nombre').focus();
-                return; 
-            }
-
-            const id = crypto.randomUUID();
-            const modo = selectModo.value;
-            const precio = parseFloat(inputPrecio.value) || 0;
-            
-            const ahora = new Date();
-            const fecha = ahora.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const hora = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            set(ref(db, 'asistencias/' + id), { id, nombre: nombreInput, modo, precio, fecha, hora, checked: false, timestamp: ahora.getTime() });
-            
-            mostrarComprobante(id, nombreInput, modo, precio, fecha, hora);
-            
-            form.reset();
-            actualizarPrecioSugerido(); 
-            document.getElementById('nombre').focus(); 
+            configurarListenersDeBase(jornadaVisualizadaId);
         });
 
-        window.toggleCheck = (id, currentStatus) => { set(ref(db, `asistencias/${id}/checked`), !currentStatus); };
-        buscador.addEventListener('input', renderVistas);
-        filtroModo.addEventListener('change', renderVistas);
+        window.terminarActividadesJornada = async () => {
+            if (esModoHistorico) return;
+            
+            const mensajeConfirmar = `⚠️ ¿Estás seguro de TERMINAR LAS ACTIVIDADES de la jornada actual?\n\n` +
+                                     `Esto archivará de forma definitiva todos los accesos y retiros contables actuales, ` +
+                                     `dejando el sistema en blanco listo para el próximo día operativo.`;
+            
+            if (confirm(mensajeConfirmar)) {
+                try {
+                    if (registros.length > 0) {
+                        const primerRegistro = [...registros].sort((a,b) => a.timestamp - b.timestamp)[0];
+                        await set(ref(db, `jornada_metadata/catalogo/${jornadaActivaId}`), {
+                            id: jornadaActivaId,
+                            fechaInicio: `${primerRegistro.fecha} ${primerRegistro.hora}`,
+                            primerAsistente: primerRegistro.nombre
+                        });
+                    } else {
+                        const ahoraVacio = new Date();
+                        await set(ref(db, `jornada_metadata/catalogo/${jornadaActivaId}`), {
+                            id: jornadaActivaId,
+                            fechaInicio: `${ahoraVacio.toLocaleDateString('es-MX')} ${ahoraVacio.toLocaleTimeString('es-MX')}`,
+                            primerAsistente: "Sin registros"
+                        });
+                    }
 
-        window.exportarExcel = () => {
-            if (registros.length === 0) return alert("No hay registros.");
-            let csvContent = "sep=\t\nNombre\tModo de Pago\tPrecio\tFecha\tHora de Registro\tEstatus de Entrada\n";
-            registros.forEach(reg => {
-                let estatus = reg.checked ? "ADENTRO" : "PENDIENTE";
-                if(reg.devuelto) estatus = "DEVUELTO (ORIGEN)";
-                if(reg.modo === 'Devolución') estatus = "REMBOLSO (-) ";
-                
-                csvContent += `"${reg.nombre.replace(/"/g, '""')}"\t${reg.modo === 'Devolución' ? `Devolucion: ${reg.modoOriginal}` : reg.modo}\t${reg.precio}\t${reg.fecha || ""}\t${reg.hora}\t${estatus}\n`;
+                    const nuevaJornadaId = 'jornada_' + Date.now();
+                    jornadaActivaId = nuevaJornadaId;
+                    jornadaVisualizadaId = nuevaJornadaId;
+                    esModoHistorico = false;
+
+                    await set(ref(db, 'jornada_metadata/activa'), { id: nuevaJornadaId, abierta: true });
+                    configurarListenersDeBase(jornadaActivaId);
+                    alert("🛑 Actividades Terminadas. Se ha inicializado un nuevo Día Operativo limpio.");
+                } catch (err) {
+                    alert("Error al procesar el cierre de actividades: " + err.message);
+                }
+            }
+        };
+
+        window.actualizarFondoCaja = () => {
+            if (esModoHistorico) return;
+            const mnt = parseFloat(document.getElementById('cajaInicialInput').value);
+            if(isNaN(mnt) || mnt < 0) return alert("Ingresa un monto válido para el fondo de caja.");
+            
+            set(ref(db, `jornadas/${jornadaActivaId}/caja_config/fondo_inicial`), mnt)
+                .then(() => alert("✨ Fondo inicial de caja guardado con éxito."))
+                .catch(err => alert("Error al guardar: " + err.message));
+        };
+
+        window.cerrarSesion = () => {
+            usuarioActivo = null;
+            localStorage.removeItem('zaicheck_user'); 
+            localStorage.removeItem('zaicheck_timestamp');
+            document.getElementById('contenidoApp').classList.add('hidden');
+            document.getElementById('pantallaLogin').classList.remove('hidden');
+        };
+
+        if (usuarioActivo) {
+            concederAccesoApp();
+        }
+
+        document.getElementById('registroForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (esModoHistorico) return;
+            const id = crypto.randomUUID();
+            const nombre = document.getElementById('nombre').value.trim();
+            const modo = document.getElementById('modo').value;
+            const tipoPago = document.getElementById('tipoPago').value;
+            const precio = parseFloat(document.getElementById('precio').value);
+            const ahora = new Date();
+            
+            set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}`), {
+                id, nombre, modo, precio, tipoPago,
+                operador: usuarioActivo,
+                fecha: ahora.toLocaleDateString('es-MX'),
+                hora: ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                checked: false, timestamp: ahora.getTime()
             });
-            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: "text/tab-separated-values;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
+            
+            consultarComprobanteDirecto(id, nombre, modo, precio, tipoPago, ahora, usuarioActivo);
+            e.target.reset();
+            document.getElementById('precio').value = PRECIOS_SOPORTE[document.getElementById('modo').value] || 0;
+        });
+
+        document.getElementById('retiroForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (esModoHistorico) return;
+            const id = crypto.randomUUID();
+            const concepto = document.getElementById('retiroConcepto').value.trim();
+            const monto = parseFloat(document.getElementById('retiroMonto').value);
+            const tipoPago = document.getElementById('retiroTipoPago').value;
+            const ahora = new Date();
+
+            set(ref(db, `jornadas/${jornadaActivaId}/retiros/${id}`), {
+                id, concepto, monto, tipoPago,
+                operador: usuarioActivo,
+                fecha: ahora.toLocaleDateString('es-MX'),
+                hora: ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: ahora.getTime()
+            });
+            e.target.reset();
+        });
+
+        function renderAll() {
+            const busc = document.getElementById('buscador').value.toLowerCase();
+            const mod = document.getElementById('filtroModo').value;
+            const tablaD = document.getElementById('tablaRegistrosDesktop');
+            const listaM = document.getElementById('listaRegistrosMobile');
+            const listaR = document.getElementById('listaRetiros');
+            const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+
+            tablaD.innerHTML = ''; listaM.innerHTML = ''; listaR.innerHTML = '';
+
+            retiros.forEach(ret => {
+                const iconoPago = ret.tipoPago === 'Transferencia' ? '📱' : '💵';
+                const d = document.createElement('div');
+                d.className = "flex justify-between items-center bg-gray-700/30 p-2 rounded text-[11px] border border-gray-700";
+                d.innerHTML = `<div><span class="text-amber-400 font-bold block truncate w-24">${ret.concepto}</span><span class="text-gray-500">${ret.hora} (${iconoPago}) • por: ${ret.operador || 'Sistema'}</span></div>
+                               <div class="flex items-center gap-2"><span class="text-red-400">-${fmt.format(ret.monto)}</span>
+                               <button onclick="borrarRetiro('${ret.id}')" ${esModoHistorico ? 'style="display:none;"' : ''} class="cursor-pointer">❌</button></div>`;
+                listaR.appendChild(d);
+            });
+
+            const filtrados = registros.filter(r => (mod === 'TODOS' || r.modo === mod) && r.nombre.toLowerCase().includes(busc));
+            document.getElementById('noData').classList.toggle('hidden', filtrados.length > 0);
+
+            const dineroFiltrado = filtrados.reduce((s, r) => s + r.precio, 0);
+            const retirosTotales = retiros.reduce((s, r) => s + r.monto, 0);
+            
+            let balanceNetoFiltrado = dineroFiltrado;
+            if (mod === 'TODOS' && busc === '') {
+                document.getElementById('labelDinero').textContent = esModoHistorico ? "Caja Cierre Turno" : "Caja Total Real";
+                balanceNetoFiltrado = (fondoCajaInicial + dineroFiltrado - retirosTotales);
+            } else {
+                document.getElementById('labelDinero').textContent = "Caja de Filtro";
+            }
+            
+            document.getElementById('totalDinero').textContent = fmt.format(balanceNetoFiltrado);
+            
+            const insideFiltrados = filtrados.filter(r => r.checked && r.modo !== 'Devolución').length;
+            const totalModoFiltrado = filtrados.filter(r => r.modo !== 'Devolución').length;
+            document.getElementById('totalAsistentes').textContent = `${insideFiltrados} / ${totalModoFiltrado}`;
+            document.getElementById('totalParciales').textContent = filtrados.filter(r => r.modo === 'Promo' || r.modo === 'Membresía canje').length;
+
+            filtrados.forEach(r => {
+                const esDev = r.modo === 'Devolución';
+                let colorClass = 'text-indigo-300 border-indigo-700';
+                if(r.modo === 'Promo' || r.modo.includes('Preventa') || r.modo.includes('clase') || r.modo === 'Penalización') {
+                    colorClass = 'text-amber-400 border-amber-800';
+                } else if(r.modo.includes('Membresía') || r.modo === 'Miembro activo') {
+                    colorClass = 'text-emerald-400 border-emerald-800';
+                } else if(esDev) {
+                    colorClass = 'text-red-400 border-red-900';
+                }
+                
+                const badgePago = r.tipoPago === 'Transferencia' ? 'bg-blue-950 text-blue-300 border border-blue-800 text-[9px] px-1 rounded' : 'bg-emerald-950 text-emerald-300 border border-emerald-800 text-[9px] px-1 rounded';
+                const textoPago = r.tipoPago === 'Transferencia' ? '📱 Transf.' : '💵 Efect.';
+                const quienAtendio = r.operador || 'Previo';
+
+                const tr = document.createElement('tr');
+                tr.className = `border-b border-gray-800 ${esDev ? 'bg-red-900/5 opacity-60' : ''}`;
+                tr.innerHTML = `
+                    <td class="py-3 px-4 ${r.checked ? 'line-through text-gray-500' : ''}">${r.nombre}</td>
+                    <td class="py-3 px-4"><span class="border px-2 py-0.5 rounded-[4px] text-[10px] ${colorClass}">${r.modo}</span></td>
+                    <td class="py-3 px-2"><span class="${badgePago}">${textoPago}</span></td>
+                    <td class="py-3 px-4 ${esDev ? 'text-red-400' : ''}">${esDev ? '-' : ''}${fmt.format(Math.abs(r.precio))}</td>
+                    <td class="py-3 px-4 text-gray-500 text-[11px]">${r.hora}</td>
+                    <td class="py-3 px-3 text-indigo-200 text-xs">${quienAtendio}</td>
+                    <td class="py-3 px-1 text-center"><button onclick="consultarTkt('${r.id}')" ${esDev ? 'disabled' : ''} class="cursor-pointer opacity-50 hover:opacity-100 disabled:hidden">🎫</button></td>
+                    <td class="py-3 px-1 text-center"><button onclick="hacerDevolucion('${r.id}', '${r.nombre}', ${r.precio})" ${(esDev || esModoHistorico) ? 'disabled style="display:none;"' : ''} class="cursor-pointer grayscale hover:grayscale-0">↩️</button></td>
+                    <td class="py-3 px-1 text-center"><button onclick="toggleCheck('${r.id}', ${r.checked})" ${(esDev || esModoHistorico) ? 'disabled' : ''} class="px-2 py-1 rounded text-[10px] ${r.checked ? 'bg-emerald-900 text-emerald-300' : 'bg-gray-700'}">${r.checked ? 'DENTRO' : 'CHECK'}</button></td>
+                `;
+                tablaD.appendChild(tr);
+
+                const card = document.createElement('div');
+                card.className = `p-4 bg-gray-800 border rounded-xl ${esDev ? 'border-red-900/40 opacity-60' : 'border-gray-700'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div><p class="font-bold ${r.checked ? 'line-through text-gray-500' : ''}">${r.nombre}</p><span class="text-[10px] text-gray-500 font-mono">${r.hora} • por ${quienAtendio}</span></div>
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="border px-2 py-0.5 rounded text-[10px] ${colorClass}">${r.modo}</span>
+                            <span class="${badgePago}">${textoPago}</span>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="font-bold ${esDev ? 'text-red-400' : ''}">${esDev ? '-' : ''}${fmt.format(Math.abs(r.precio))}</span>
+                        <div class="flex gap-2">
+                            ${!esDev ? `<button onclick="consultarTkt('${r.id}')" class="bg-gray-700 p-2 rounded">🎫</button>
+                             <button onclick="hacerDevolucion('${r.id}', '${r.nombre}', ${r.precio})" ${esModoHistorico ? 'style="display:none;"' : ''} class="bg-gray-700 p-2 rounded">↩️</button>
+                             <button onclick="toggleCheck('${r.id}', ${r.checked})" ${esModoHistorico ? 'disabled' : ''} class="px-3 py-1 rounded text-[10px] ${r.checked ? 'bg-emerald-900 text-emerald-300' : 'bg-indigo-600'}">${r.checked ? 'DENTRO' : 'CHECK'}</button>` : ''}
+                        </div>
+                    </div>`;
+                listaM.appendChild(card);
+            });
+        }
+
+        window.borrarRetiro = (id) => {
+            if (esModoHistorico) return;
+            confirm("¿Eliminar este retiro?") && remove(ref(db, `jornadas/${jornadaActivaId}/retiros/${id}`));
+        };
+
+        window.toggleCheck = (id, s) => {
+            if (esModoHistorico) return;
+            set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/checked`), !s);
+        };
+
+        window.hacerDevolucion = (id, nom, pre) => {
+            if (esModoHistorico) return;
+            if(confirm(`¿Confirmar devolución para ${nom}?`)) {
+                set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/modo`), 'Devolución');
+                set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/precio`), -Math.abs(pre));
+                set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/checked`), false);
+                set(ref(db, `jornadas/${jornadaActivaId}/asistencias/${id}/operador`), usuarioActivo);
+            }
+        };
+
+        // GENERAR CORTE CORREGIDO (CORRECCIÓN ARITMÉTICA PARA EVITAR LA DOBLE RESTA)
+        window.generarCorteCaja = () => {
+            const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+            const ahora = new Date();
+
+            const ventasEfe = registros.filter(r => r.modo !== 'Devolución' && r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.precio, 0);
+            const ventasTra = registros.filter(r => r.modo !== 'Devolución' && r.tipoPago === 'Transferencia').reduce((s, r) => s + r.precio, 0);
+            
+            const devEfe = registros.filter(r => r.modo === 'Devolución' && r.tipoPago !== 'Transferencia').reduce((s, r) => s + Math.abs(r.precio), 0);
+            const devTra = registros.filter(r => r.modo === 'Devolución' && r.tipoPago === 'Transferencia').reduce((s, r) => s + Math.abs(r.precio), 0);
+            
+            // Ingresos Brutos = Ventas netas actuales + devoluciones efectuadas
+            const ingEfe = ventasEfe + devEfe;
+            const ingTra = ventasTra + devTra;
+
+            const retEfe = retiros.filter(r => r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.monto, 0);
+            const retTra = retiros.filter(r => r.tipoPago === 'Transferencia').reduce((s, r) => s + r.monto, 0);
+
+            const netoEfe = fondoCajaInicial + ingEfe - devEfe - retEfe;
+            const netoTra = ingTra - devTra - retTra;
+            const netoGlobal = netoEfe + netoTra;
+
+            document.getElementById('corteFechaHora').textContent = `${ahora.toLocaleDateString('es-MX')} - ${ahora.toLocaleTimeString('es-MX')}`;
+            document.getElementById('corteFondoInicial').textContent = fmt.format(fondoCajaInicial);
+            
+            document.getElementById('corteIngresos').innerHTML = `<div class="text-right">💵 ${fmt.format(ingEfe)}<br>📱 ${fmt.format(ingTra)}</div>`;
+            document.getElementById('corteDevoluciones').innerHTML = `<div class="text-right text-red-700">💵 ${fmt.format(devEfe)}<br>📱 ${fmt.format(devTra)}</div>`;
+            document.getElementById('corteRetiros').innerHTML = `<div class="text-right text-amber-700">💵 ${fmt.format(retEfe)}<br>📱 ${fmt.format(retTra)}</div>`;
+            
+            const contenedorDetalleRetiros = document.getElementById('corteDetalleRetirosLista');
+            contenedorDetalleRetiros.innerHTML = ''; 
+            
+            if (retiros.length > 0) {
+                retiros.forEach(ret => {
+                    const iconoPago = ret.tipoPago === 'Transferencia' ? '📱' : '💵';
+                    const fila = document.createElement('div');
+                    fila.className = "flex justify-between italic text-gray-500 font-mono text-[11px]";
+                    fila.innerHTML = `<span>• ${ret.concepto} (${ret.hora} ${iconoPago})</span><span>-${fmt.format(ret.monto)}</span>`;
+                    contenedorDetalleRetiros.appendChild(fila);
+                });
+            } else {
+                contenedorDetalleRetiros.innerHTML = '<div class="text-gray-400 italic text-[11px] font-mono">• Sin retiros registrados</div>';
+            }
+
+            document.getElementById('corteNetoEfectivo').textContent = fmt.format(netoEfe);
+            document.getElementById('corteNetoTra').textContent = fmt.format(netoTra);
+            document.getElementById('corteTotalNeto').textContent = fmt.format(netoGlobal);
+
+            document.getElementById('modalCorte').classList.remove('hidden');
+        };
+
+        window.cerrarCorte = () => document.getElementById('modalCorte').classList.add('hidden');
+
+        window.consultarTkt = (id) => {
+            const r = registros.find(x => x.id === id);
+            if(r) consultarComprobanteDirecto(r.id, r.nombre, r.modo, r.precio, r.tipoPago || 'Efectivo', r.timestamp, r.operador);
+        };
+
+        function consultarComprobanteDirecto(id, nombre, modo, precio, tipoPago, time, operador) {
+            const d = new Date(time);
+            document.getElementById('compFolio').textContent = `#${id.split('-')[0].toUpperCase()}`;
+            document.getElementById('compNombre').textContent = nombre;
+            document.getElementById('compModo').textContent = modo;
+            document.getElementById('compMetodo').textContent = tipoPago;
+            document.getElementById('compPrecio').textContent = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(precio);
+            document.getElementById('compFechaHora').textContent = `${d.toLocaleDateString()} - ${d.toLocaleTimeString()}`;
+            document.getElementById('compOperador').textContent = operador || 'Sistema';
+            
+            const contenedorQR = document.getElementById('contenedorQRComprobante');
+            const divQR = document.getElementById('qrcode');
+            divQR.innerHTML = ""; 
+
+            if (modo.toLowerCase().includes('membresía')) {
+                contenedorQR.classList.remove('hidden');
+                qrInstancia = new QRCode(divQR, {
+                    text: id, 
+                    width: 128,
+                    height: 128,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            } else {
+                contenedorQR.classList.add('hidden');
+            }
+
+            document.getElementById('modalComprobante').classList.remove('hidden');
+        }
+
+        window.cerrarComprobante = () => document.getElementById('modalComprobante').classList.add('hidden');
+        
+        document.getElementById('buscador').addEventListener('input', renderAll);
+        document.getElementById('filtroModo').addEventListener('change', renderAll);
+
+        window.abrirEscanerQR = () => {
+            if (esModoHistorico) return;
+            document.getElementById('modalEscaner').classList.remove('hidden');
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("reader");
+            }
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onQrScanSuccess,
+                onQrScanFailure
+            ).catch(err => {
+                console.error("No se pudo iniciar la cámara: ", err);
+                document.getElementById('modalEscaner').classList.add('hidden');
+            });
+        };
+
+        window.cerrarEscanerQR = async () => {
+            document.getElementById('modalEscaner').classList.add('hidden');
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                try {
+                    await html5QrcodeScanner.stop();
+                } catch (err) {
+                    console.warn("Retraso al detener la cámara:", err);
+                }
+            }
+        };
+
+        async function onQrScanSuccess(decodedText) {
+            cerrarEscanerQR(); 
+            const uuidFiltrado = decodedText.trim();
+            
+            try {
+                const snapshot = await get(ref(db, `jornadas/${jornadaActivaId}/asistencias/${uuidFiltrado}`));
+                
+                if (snapshot.exists()) {
+                    const datosSocio = snapshot.val();
+                    
+                    if(datosSocio.modo === 'Devolución') {
+                        return alert("❌ Este pase pertenece a una membresía que fue marcada como Devolución.");
+                    }
+
+                    if (datosSocio.checked) {
+                        alert(`⚠️ Alerta: ¡${datosSocio.nombre} ya se encuentra registrado DENTRO del establecimiento!`);
+                        return;
+                    }
+
+                    await update(ref(db, `jornadas/${jornadaActivaId}/asistencias/${uuidFiltrado}`), { checked: true });
+                    desplegarPantallaPase(datosSocio.nombre, datosSocio.modo);
+
+                } else {
+                    alert("❌ Código QR no válido o no registrado en esta jornada de Zaicheck.");
+                }
+            } catch (err) {
+                alert("Error al procesar el pase de la membresía: " + err.message);
+            }
+        }
+
+        function onQrScanFailure(error) {}
+
+        function desplegarPantallaPase(nombre, modo) {
+            document.getElementById('paseNombre').textContent = nombre;
+            document.getElementById('paseModo').textContent = modo;
+            document.getElementById('pantallaPaseOk').classList.remove('hidden');
+        }
+
+        window.cerrarPantallaPase = () => {
+            document.getElementById('pantallaPaseOk').classList.add('hidden');
+        };
+
+        // EXPORTACIÓN A EXCEL CONTABLE CORREGIDA
+        window.exportarExcel = () => {
+            if (registros.length === 0 && retiros.length === 0 && fondoCajaInicial === 0) {
+                return alert("No hay movimientos para exportar.");
+            }
+            
+            const ventasEfe = registros.filter(r => r.modo !== 'Devolución' && r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.precio, 0);
+            const ventasTra = registros.filter(r => r.modo !== 'Devolución' && r.tipoPago === 'Transferencia').reduce((s, r) => s + r.precio, 0);
+            
+            const devEfe = registros.filter(r => r.modo === 'Devolución' && r.tipoPago !== 'Transferencia').reduce((s, r) => s + Math.abs(r.precio), 0);
+            const devTra = registros.filter(r => r.modo === 'Devolución' && r.tipoPago === 'Transferencia').reduce((s, r) => s + Math.abs(r.precio), 0);
+            
+            const ingEfe = ventasEfe + devEfe;
+            const ingTra = ventasTra + devTra;
+
+            const retEfe = retiros.filter(r => r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.monto, 0);
+            const retTra = retiros.filter(r => r.tipoPago === 'Transferencia').reduce((s, r) => s + r.monto, 0);
+
+            const netoEfe = fondoCajaInicial + ingEfe - devEfe - retEfe;
+            const netoTra = ingTra - devTra - retTra;
+
+            let csvContent = "sep=;\n";
+            csvContent += `REPORTE DE JORNADA OPERATIVA: ${jornadaVisualizadaId.toUpperCase()}\n\n`;
+
+            csvContent += "1. REGISTRO DE ENTRADAS Y ACCESOS\n";
+            csvContent += "Nombre;Modo de Acceso;Forma de Pago;Precio ($);Fecha;Hora;Atendió;Estado Check-In\n";
+            
+            registros.forEach(r => {
+                const est = r.modo === 'Devolución' ? "DEVOLUCION" : (r.checked ? "DENTRO" : "PENDIENTE");
+                const nombreLimpio = r.nombre.replace(/;/g, " ").replace(/,/g, " "); 
+                csvContent += `"${nombreLimpio}";"${r.modo}";"${r.tipoPago || 'Efectivo'}";${r.precio};"${r.fecha || ""}";"${r.hora || ""}";"${r.operador || "Previo"}";"${est}"\n`;
+            });
+
+            csvContent += "\n\n";
+
+            csvContent += "2. HISTORIAL DE RETIROS DE CAJA (GASTOS/SALIDAS)\n";
+            csvContent += "Concepto / Motivo del Retiro;Forma de Retiro;Monto Extraído ($);Autorizó / Retiró;Fecha;Hora Exacta\n";
+            
+            retiros.forEach(ret => {
+                const conceptoLimpio = ret.concepto.replace(/;/g, " ").replace(/,/g, " ");
+                csvContent += `"${conceptoLimpio}";"${ret.tipoPago || 'Efectivo'}";-${ret.monto};"${ret.operador || "Sistema"}";"${ret.fecha || ""}";"${ret.hora}"\n`;
+            });
+
+            csvContent += "\n\n";
+
+            csvContent += "3. RESUMEN FINANCIERO POR MÉTODO DE PAGO\n";
+            csvContent += "Módulo Contable;Efectivo ($);Transferencia ($)\n";
+            csvContent += `(+) FONDO INICIAL DE CAJA;${fondoCajaInicial.toFixed(2)};0.00\n`;
+            csvContent += `(+) Ingresos Brutos;${ingEfe.toFixed(2)};${ingTra.toFixed(2)}\n`;
+            csvContent += `(-) Devoluciones;${devEfe.toFixed(2)};${devTra.toFixed(2)}\n`;
+            csvContent += `(-) Retiros Realizados;${retEfe.toFixed(2)};${retTra.toFixed(2)}\n`;
+            csvContent += `(=) BALANCES NETOS DE CIERRE;${netoEfe.toFixed(2)};${netoTra.toFixed(2)}\n`;
+            csvContent += `TOTAL NETO EN CAJA COMBINADO;${(netoEfe + netoTra).toFixed(2)};\n`;
+
+            const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
             const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `ZAICHECK_BailamosMexico_${new Date().toISOString().split('T')[0]}.xls`);
-            document.body.appendChild(link);
+            link.href = URL.createObjectURL(blob);
+            link.download = `Reporte_Zaicheck_${jornadaVisualizadaId}.csv`;
             link.click();
-            document.body.removeChild(link);
         };
 
         window.limpiarRegistros = () => {
-            if (confirm("⚠️ ¿Borrar TODOS los registros de accesos Y retiros permanentemente?")) {
-                remove(registrosRef);
-                remove(retirosRef);
+            if(confirm("🚨 ATENCIÓN EXTRA: ¿Estás completamente seguro de BORRAR EL HISTORIAL GENERAL permanentemente?\n\nEsto eliminará todas las jornadas anteriores guardadas en el catálogo y reseteará la actual.")) {
+                remove(ref(db, 'jornadas'));
+                remove(ref(db, 'jornada_metadata'));
+                alert("Historial destruido con éxito. Reiniciando app.");
+                location.reload();
             }
         };
+
+        function actualizarActividad() {
+            if (usuarioActivo) {
+                const tiempoUltimo = parseInt(localStorage.getItem('zaicheck_timestamp') || "0");
+                if (Date.now() - tiempoUltimo > SESION_DURACION) {
+                    alert("Tu sesión ha expirado por inactividad (10 minutos).");
+                    cerrarSesion();
+                } else {
+                    localStorage.setItem('zaicheck_timestamp', Date.now());
+                }
+            }
+        }
+
+        window.addEventListener('click', actualizarActividad);
+        window.addEventListener('keypress', actualizarActividad);
+        window.addEventListener('scroll', actualizarActividad);
+
+        setInterval(() => {
+            if (usuarioActivo) {
+                const tiempoUltimo = parseInt(localStorage.getItem('zaicheck_timestamp') || "0");
+                if (Date.now() - tiempoUltimo > SESION_DURACION) {
+                    cerrarSesion();
+                    alert("Sesión cerrada automáticamente por inactividad.");
+                }
+            }
+        }, 15000);
     </script>
 </body>
 </html>
