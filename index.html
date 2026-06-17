@@ -122,9 +122,6 @@
                 <button onclick="terminarActividadesJornada()" id="btnTerminarActividades" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-md flex items-center gap-1 cursor-pointer">
                     🛑 Terminar Actividades
                 </button>
-                <button onclick="limpiarRegistros()" id="btnLimpiarTodo" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs font-semibold px-4 py-2 rounded-lg border border-red-900/50 transition-colors cursor-pointer">
-                    🗑️ Limpiar Historial
-                </button>
             </div>
         </div>
 
@@ -201,9 +198,15 @@
 
             <div class="md:col-span-2 bg-gray-800 p-5 rounded-xl shadow-lg flex flex-col">
                 <div class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="bg-indigo-950/40 border border-indigo-800/60 p-3 rounded-xl text-center">
-                        <p class="text-[10px] text-indigo-300 uppercase font-semibold" id="labelDinero">Caja Total Real</p>
-                        <span id="totalDinero" class="text-xl font-bold text-indigo-400">$0.00</span>
+                    <div class="bg-indigo-950/40 border border-indigo-800/60 p-3 rounded-xl text-center flex flex-col justify-between">
+                        <div>
+                            <p class="text-[10px] text-indigo-300 uppercase font-semibold" id="labelDinero">Caja Total Real</p>
+                            <span id="totalDinero" class="text-xl font-bold text-indigo-400 block">$0.00</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-indigo-900/60 text-[10px] font-mono text-indigo-300/85">
+                            <div class="text-left">💵 <span id="desgloseEfectivo">$0.00</span></div>
+                            <div class="text-right">📱 <span id="desgloseTransf">$0.00</span></div>
+                        </div>
                     </div>
                     <div class="bg-emerald-950/40 border border-emerald-800/60 p-3 rounded-xl text-center">
                         <p class="text-[10px] text-emerald-300 uppercase font-semibold">Inside Filtrados</p>
@@ -265,7 +268,6 @@
         </div>
     </div>
 
-    <!-- MODAL VISTA COMPROBANTE TICKET -->
     <div id="modalComprobante" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-sm w-full text-center flex flex-col" id="ticketImpresion">
             <div class="text-2xl font-black text-indigo-900 tracking-tight">BAILAMOS MEXICO</div>
@@ -298,7 +300,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE LECTURA DE QR POR CÁMARA -->
     <div id="modalEscaner" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl max-w-md w-full text-center">
             <h3 class="text-lg font-bold text-indigo-400 mb-2">📷 Escanear Pase de Membresía</h3>
@@ -310,7 +311,6 @@
         </div>
     </div>
 
-    <!-- PANTALLA COMPLETA DE CONFIRMACIÓN -->
     <div id="pantallaPaseOk" class="fixed inset-0 bg-emerald-950/95 flex items-center justify-center p-4 hidden z-50 transition-all">
         <div class="bg-white text-gray-900 p-8 rounded-3xl max-w-sm w-full text-center border-4 border-emerald-500 shadow-2xl">
             <div class="text-6xl mb-3 animate-bounce">✅</div>
@@ -338,7 +338,6 @@
         </div>
     </div>
 
-    <!-- MODAL CORTE DE CAJA (SIN MÉTRICAS DE ASISTENCIA) -->
     <div id="modalCorte" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white text-gray-900 p-6 rounded-2xl max-w-md w-full text-center flex flex-col" id="ticketCorte">
             <div class="text-2xl font-black text-gray-900 tracking-tight">CORTE DE CAJA</div>
@@ -729,18 +728,32 @@
             const filtrados = registros.filter(r => (mod === 'TODOS' || r.modo === mod) && r.nombre.toLowerCase().includes(busc));
             document.getElementById('noData').classList.toggle('hidden', filtrados.length > 0);
 
-            const dineroFiltrado = filtrados.reduce((s, r) => s + r.precio, 0);
-            const retirosTotales = retiros.reduce((s, r) => s + r.monto, 0);
+            // --- CÁLCULO DINÁMICO DEL DESGLOSE DE ACCESOS ---
+            const ventasEfe = filtrados.filter(r => r.modo !== 'Devolución' && r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.precio, 0);
+            const ventasTra = filtrados.filter(r => r.modo !== 'Devolución' && r.tipoPago === 'Transferencia').reduce((s, r) => s + r.precio, 0);
             
-            let balanceNetoFiltrado = dineroFiltrado;
+            const devEfe = filtrados.filter(r => r.modo === 'Devolución' && r.tipoPago !== 'Transferencia').reduce((s, r) => s + Math.abs(r.precio), 0);
+            const devTra = filtrados.filter(r => r.modo === 'Devolución' && r.tipoPago === 'Transferencia').reduce((s, r) => s + Math.abs(r.precio), 0);
+
+            const retEfe = retiros.filter(r => r.tipoPago !== 'Transferencia').reduce((s, r) => s + r.monto, 0);
+            const retTra = retiros.filter(r => r.tipoPago === 'Transferencia').reduce((s, r) => s + r.monto, 0);
+
+            let netoEfectivo = ventasEfe - devEfe;
+            let netoTransferencia = ventasTra - devTra;
+            let balanceNetoFiltrado = netoEfectivo + netoTransferencia;
+
             if (mod === 'TODOS' && busc === '') {
                 document.getElementById('labelDinero').textContent = esModoHistorico ? "Caja Cierre Turno" : "Caja Total Real";
-                balanceNetoFiltrado = (fondoCajaInicial + dineroFiltrado - retirosTotales);
+                netoEfectivo = fondoCajaInicial + ventasEfe - devEfe - retEfe;
+                netoTransferencia = ventasTra - devTra - retTra;
+                balanceNetoFiltrado = netoEfectivo + netoTransferencia;
             } else {
                 document.getElementById('labelDinero').textContent = "Caja de Filtro";
             }
             
             document.getElementById('totalDinero').textContent = fmt.format(balanceNetoFiltrado);
+            document.getElementById('desgloseEfectivo').textContent = fmt.format(netoEfectivo);
+            document.getElementById('desgloseTransf').textContent = fmt.format(netoTransferencia);
             
             const insideFiltrados = filtrados.filter(r => r.checked && r.modo !== 'Devolución').length;
             const totalModoFiltrado = filtrados.filter(r => r.modo !== 'Devolución').length;
@@ -819,7 +832,6 @@
             }
         };
 
-        // GENERAR CORTE CORREGIDO (CORRECCIÓN ARITMÉTICA PARA EVITAR LA DOBLE RESTA)
         window.generarCorteCaja = () => {
             const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
             const ahora = new Date();
@@ -830,7 +842,6 @@
             const devEfe = registros.filter(r => r.modo === 'Devolución' && r.tipoPago !== 'Transferencia').reduce((s, r) => s + Math.abs(r.precio), 0);
             const devTra = registros.filter(r => r.modo === 'Devolución' && r.tipoPago === 'Transferencia').reduce((s, r) => s + Math.abs(r.precio), 0);
             
-            // Ingresos Brutos = Ventas netas actuales + devoluciones efectuadas
             const ingEfe = ventasEfe + devEfe;
             const ingTra = ventasTra + devTra;
 
@@ -984,7 +995,6 @@
             document.getElementById('pantallaPaseOk').classList.add('hidden');
         };
 
-        // EXPORTACIÓN A EXCEL CONTABLE CORREGIDA
         window.exportarExcel = () => {
             if (registros.length === 0 && retiros.length === 0 && fondoCajaInicial === 0) {
                 return alert("No hay movimientos para exportar.");
@@ -1043,15 +1053,6 @@
             link.href = URL.createObjectURL(blob);
             link.download = `Reporte_Zaicheck_${jornadaVisualizadaId}.csv`;
             link.click();
-        };
-
-        window.limpiarRegistros = () => {
-            if(confirm("🚨 ATENCIÓN EXTRA: ¿Estás completamente seguro de BORRAR EL HISTORIAL GENERAL permanentemente?\n\nEsto eliminará todas las jornadas anteriores guardadas en el catálogo y reseteará la actual.")) {
-                remove(ref(db, 'jornadas'));
-                remove(ref(db, 'jornada_metadata'));
-                alert("Historial destruido con éxito. Reiniciando app.");
-                location.reload();
-            }
         };
 
         function actualizarActividad() {
