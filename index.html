@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BAILAMOS MEXICO ZAICHECK - PRO</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#111827">
+    <link rel="manifest" href="manifest.json">
+    
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -451,7 +458,8 @@
 
                 // Primer inicio de sesión: crear PIN
                 if (!datos.pin || datos.pin === "") {
-                    const nuevoPin = prompt("Es tu primer inicio de sesión.\nCrea un PIN de 4 dígitos:");
+                    const nuevoPin = prompt("Es tu primer inicio de sesión.
+Crea un PIN de 4 dígitos:");
 
                     if (!nuevoPin || !/^\d{4}$/.test(nuevoPin)) {
                         return alert("Debes ingresar un PIN válido de 4 dígitos.");
@@ -631,7 +639,9 @@
         window.terminarActividadesJornada = async () => {
             if (esModoHistorico) return;
             
-            const mensajeConfirmar = `⚠️ ¿Estás seguro de TERMINAR LAS ACTIVIDADES de la jornada actual?\n\n` +
+            const mensajeConfirmar = `⚠️ ¿Estás seguro de TERMINAR LAS ACTIVIDADES de la jornada actual?
+
+` +
                                      `Esto archivará de forma definitiva todos los accesos y retiros contables actuales, ` +
                                      `dejando el sistema en blanco listo para el próximo día operativo.`;
             
@@ -1040,40 +1050,61 @@
             const netoEfe = fondoCajaInicial + ingEfe - devEfe - retEfe;
             const netoTra = ingTra - devTra - retTra;
 
-            let csvContent = "sep=;\n";
-            csvContent += `REPORTE DE JORNADA OPERATIVA: ${jornadaVisualizadaId.toUpperCase()}\n\n`;
+            let csvContent = "sep=;
+";
+            csvContent += `REPORTE DE JORNADA OPERATIVA: ${jornadaVisualizadaId.toUpperCase()}
 
-            csvContent += "1. REGISTRO DE ENTRADAS Y ACCESOS\n";
-            csvContent += "Nombre;Modo de Acceso;Forma de Pago;Precio ($);Fecha;Hora;Atendió;Estado Check-In\n";
+`;
+
+            csvContent += "1. REGISTRO DE ENTRADAS Y ACCESOS
+";
+            csvContent += "Nombre;Modo de Acceso;Forma de Pago;Precio ($);Fecha;Hora;Atendió;Estado Check-In
+";
             
             registros.forEach(r => {
                 const est = r.modo === 'Devolución' ? "DEVOLUCION" : (r.checked ? "DENTRO" : "PENDIENTE");
                 const nombreLimpio = r.nombre.replace(/;/g, " ").replace(/,/g, " "); 
-                csvContent += `"${nombreLimpio}";"${r.modo}";"${r.tipoPago || 'Efectivo'}";${r.precio};"${r.fecha || ""}";"${r.hora || ""}";"${r.operador || "Previo"}";"${est}"\n`;
+                csvContent += `"${nombreLimpio}";"${r.modo}";"${r.tipoPago || 'Efectivo'}";${r.precio};"${r.fecha || ""}";"${r.hora || ""}";"${r.operador || "Previo"}";"${est}"
+`;
             });
 
-            csvContent += "\n\n";
+            csvContent += "
 
-            csvContent += "2. HISTORIAL DE RETIROS DE CAJA (GASTOS/SALIDAS)\n";
-            csvContent += "Concepto / Motivo del Retiro;Forma de Retiro;Monto Extraído ($);Autorizó / Retiró;Fecha;Hora Exacta\n";
+";
+
+            csvContent += "2. HISTORIAL DE RETIROS DE CAJA (GASTOS/SALIDAS)
+";
+            csvContent += "Concepto / Motivo del Retiro;Forma de Retiro;Monto Extraído ($);Autorizó / Retiró;Fecha;Hora Exacta
+";
             
             retiros.forEach(ret => {
                 const conceptoLimpio = ret.concepto.replace(/;/g, " ").replace(/,/g, " ");
-                csvContent += `"${conceptoLimpio}";"${ret.tipoPago || 'Efectivo'}";-${ret.monto};"${ret.operador || "Sistema"}";"${ret.fecha || ""}";"${ret.hora}"\n`;
+                csvContent += `"${conceptoLimpio}";"${ret.tipoPago || 'Efectivo'}";-${ret.monto};"${ret.operador || "Sistema"}";"${ret.fecha || ""}";"${ret.hora}"
+`;
             });
 
-            csvContent += "\n\n";
+            csvContent += "
 
-            csvContent += "3. RESUMEN FINANCIERO POR MÉTODO DE PAGO\n";
-            csvContent += "Módulo Contable;Efectivo ($);Transferencia ($)\n";
-            csvContent += `(+) FONDO INICIAL DE CAJA;${fondoCajaInicial.toFixed(2)};0.00\n`;
-            csvContent += `(+) Ingresos Brutos;${ingEfe.toFixed(2)};${ingTra.toFixed(2)}\n`;
-            csvContent += `(-) Devoluciones;${devEfe.toFixed(2)};${devTra.toFixed(2)}\n`;
-            csvContent += `(-) Retiros Realizados;${retEfe.toFixed(2)};${retTra.toFixed(2)}\n`;
-            csvContent += `(=) BALANCES NETOS DE CIERRE;${netoEfe.toFixed(2)};${netoTra.toFixed(2)}\n`;
-            csvContent += `TOTAL NETO EN CAJA COMBINADO;${(netoEfe + netoTra).toFixed(2)};\n`;
+";
 
-            const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+            csvContent += "3. RESUMEN FINANCIERO POR MÉTODO DE PAGO
+";
+            csvContent += "Módulo Contable;Efectivo ($);Transferencia ($)
+";
+            csvContent += `(+) FONDO INICIAL DE CAJA;${fondoCajaInicial.toFixed(2)};0.00
+`;
+            csvContent += `(+) Ingresos Brutos;${ingEfe.toFixed(2)};${ingTra.toFixed(2)}
+`;
+            csvContent += `(-) Devoluciones;${devEfe.toFixed(2)};${devTra.toFixed(2)}
+`;
+            csvContent += `(-) Retiros Realizados;${retEfe.toFixed(2)};${retTra.toFixed(2)}
+`;
+            csvContent += `(=) BALANCES NETOS DE CIERRE;${netoEfe.toFixed(2)};${netoTra.toFixed(2)}
+`;
+            csvContent += `TOTAL NETO EN CAJA COMBINADO;${(netoEfe + netoTra).toFixed(2)};
+`;
+
+            const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8;" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = `Reporte_Zaicheck_${jornadaVisualizadaId}.csv`;
